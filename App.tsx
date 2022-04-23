@@ -18,5 +18,25 @@ import {
 import { VirtualizedGrid } from "./src/index";
 
 export default function App() {
-  return <VirtualizedGrid />;
+  const { width, height } = useWindowDimensions();
+  return (
+    <VirtualizedGrid
+      columnCount={100}
+      rowCount={400}
+      style={{
+        borderWidth: 1,
+        borderColor: "#000",
+        width,
+        height,
+      }}
+      renderCell={(info) => {
+        return (
+          <View>
+            <Text>c: {info.columnIndex}</Text>
+            <Text>r: {info.rowIndex}</Text>
+          </View>
+        );
+      }}
+    />
+  );
 }
