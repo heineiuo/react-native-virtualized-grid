@@ -1,0 +1,6 @@
+.DS_Store
+.expo
+web-build
+node_modules
+lib
+typings
