@@ -171,16 +171,21 @@ export function VirtualizedGrid({
      * rows同理。
      */
     const outsideColumns: ColumnObject[] = [];
+    const outsideRows: RowObject[] = [];
+    const outsideCells: CellObject[] = [];
 
     if (event.deltaX > 0) {
       let maxColumnValue = NaN;
+      let maxColumnIndex = NaN;
       for (let i = 0; i < virtualColumns.current.length; i++) {
         const column = virtualColumns.current[i];
         const columnValue = column.x;
         if (i === 0) {
           maxColumnValue = columnValue;
+          maxColumnIndex = column.columnIndex;
         } else {
           maxColumnValue = Math.max(columnValue, maxColumnValue);
+          maxColumnIndex = Math.max(column.columnIndex, maxColumnIndex);
         }
 
         /**
@@ -196,17 +201,21 @@ export function VirtualizedGrid({
         for (let i = 0; i < outsideColumns.length; i++) {
           const column = outsideColumns[i];
           column.xAnimated.setValue(maxColumnValue + minCellWidth * (i + 1));
+          column.columnIndex = maxColumnIndex + i + 1;
         }
       }
     } else {
       let minColumnValue = NaN;
+      let minColumnIndex = NaN;
       for (let i = 0; i < virtualColumns.current.length; i++) {
         const column = virtualColumns.current[i];
         const columnValue = column.x;
         if (i === 0) {
+          minColumnIndex = column.columnIndex;
           minColumnValue = columnValue;
         } else {
           minColumnValue = Math.min(columnValue, minColumnValue);
+          minColumnIndex = Math.min(column.columnIndex, minColumnIndex);
         }
 
         /**
@@ -222,21 +231,23 @@ export function VirtualizedGrid({
         for (let i = 0; i < outsideColumns.length; i++) {
           const column = outsideColumns[i];
           column.xAnimated.setValue(minColumnValue - minCellWidth * (i + 1));
+          column.columnIndex = minColumnIndex - i - 1;
         }
       }
     }
 
-    const outsideRows: RowObject[] = [];
-
     if (event.deltaY > 0) {
       let maxRowValue = NaN;
+      let maxRowIndex = NaN;
       for (let i = 0; i < virtualRows.current.length; i++) {
         const row = virtualRows.current[i];
         const rowValue = row.y;
         if (i === 0) {
           maxRowValue = rowValue;
+          maxRowIndex = row.rowIndex;
         } else {
           maxRowValue = Math.max(rowValue, maxRowValue);
+          maxRowIndex = Math.max(row.rowIndex, maxRowIndex);
         }
 
         /**
@@ -252,17 +263,21 @@ export function VirtualizedGrid({
         for (let i = 0; i < outsideRows.length; i++) {
           const row = outsideRows[i];
           row.yAnimated.setValue(maxRowValue + minCellHeight * (i + 1));
+          row.rowIndex = maxRowIndex + i + 1;
         }
       }
     } else {
       let minRowValue = NaN;
+      let minRowIndex = NaN;
       for (let i = 0; i < virtualRows.current.length; i++) {
         const row = virtualRows.current[i];
         const rowValue = row.y;
         if (i === 0) {
           minRowValue = rowValue;
+          minRowIndex = row.rowIndex;
         } else {
           minRowValue = Math.min(rowValue, minRowValue);
+          minRowIndex = Math.min(row.rowIndex, minRowIndex);
         }
 
         /**
@@ -278,6 +293,7 @@ export function VirtualizedGrid({
         for (let i = 0; i < outsideRows.length; i++) {
           const row = outsideRows[i];
           row.yAnimated.setValue(minRowValue - minCellHeight * (i + 1));
+          row.rowIndex = minRowIndex - i - 1;
         }
       }
     }
@@ -285,6 +301,24 @@ export function VirtualizedGrid({
     /**
      * 计算需要更新的cell，并调用update方法更新cell
      */
+
+    for (let i = 0; i < virtualCells.current.length; i++) {
+      const cell = virtualCells.current[i];
+      if (!outsideCells.includes(cell)) {
+        if (outsideColumns.includes(cell.column)) {
+          outsideCells.push(cell);
+        } else if (outsideRows.includes(cell.row)) {
+          outsideCells.push(cell);
+        }
+      }
+    }
+
+    for (const cell of outsideCells) {
+      cell.ref.current.update({
+        rowIndex: cell.row.rowIndex,
+        columnIndex: cell.column.columnIndex,
+      });
+    }
   }, []);
 
   useEffect(() => {
