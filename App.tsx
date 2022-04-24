@@ -21,8 +21,8 @@ export default function App() {
   const { width, height } = useWindowDimensions();
   return (
     <VirtualizedGrid
-      columnCount={Number.MAX_SAFE_INTEGER}
-      rowCount={Number.MAX_SAFE_INTEGER}
+      columnCount={1000}
+      rowCount={1000}
       style={{
         borderWidth: 1,
         borderColor: "#000",
