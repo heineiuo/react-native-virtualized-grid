@@ -13,19 +13,21 @@ import { CellObject, ColumnObject, RowObject } from "./VirtualGridUtils";
 
 export function VirtualizedGrid({
   style,
-  defaultColumnWidth = 100,
-  defaultRowHeight = 40,
   columnCount,
   rowCount,
   renderCell,
   getColumnWidth = () => 100,
   getRowHeight = () => 40,
+  showColumnLine = true,
+  showRowLine = true,
 }: {
   style?: ViewStyle;
   defaultColumnWidth?: number;
   defaultRowHeight?: number;
   columnCount: number;
   rowCount: number;
+  showRowLine?: boolean;
+  showColumnLine?: boolean;
   getColumnWidth?: (info: { columnIndex: number }) => number;
   getRowHeight?: (info: { rowIndex: number }) => number;
   renderCell: (info: { columnIndex: number; rowIndex: number }) => ReactNode;
@@ -41,24 +43,37 @@ export function VirtualizedGrid({
    */
   const coordinate = useRef(new Animated.ValueXY({ x: 0, y: 0 }));
   const containerSize = useRef(new Animated.ValueXY({ x: 0, y: 0 }));
-  const contentSize = useRef(new Animated.ValueXY({ x: 0, y: 0 }));
-
-  useEffect(() => {
-    contentSize.current.setValue({
-      x: columnCount * defaultColumnWidth,
-      y: rowCount * defaultRowHeight,
-    });
-  }, [rowCount, columnCount, defaultColumnWidth, defaultRowHeight]);
 
   /**
-   * 列宽和行高初始化时是默认值，但可以调整，调整后的值保存到columnWidthMap
-   * 或rowHeightMap内
-   *
-   * 在移动列或者行的时候，查询map里是否有匹配的值，有的话则取代
-   * defaultColumnWidth/defaultRowHeight来更新columnObject/rowObject
+   * 获取当前的rowIndex范围和columnIndex范围
    */
-  const columnWidthMap = useRef<Record<string, Animated.AnimatedValue>>({});
-  const rowHeightMap = useRef<Record<string, Animated.AnimatedValue>>({});
+  const getRange = useCallback(() => {
+    let minColumn = virtualColumns.current[0];
+    let maxColumn = virtualColumns.current[0];
+    let minRow = virtualRows.current[0];
+    let maxRow = virtualRows.current[0];
+
+    for (let i = 0; i < virtualColumns.current.length; i++) {
+      const column = virtualColumns.current[i];
+      if (column.columnIndex < minColumn.columnIndex) {
+        minColumn = column;
+      }
+      if (column.columnIndex > maxColumn.columnIndex) {
+        maxColumn = column;
+      }
+    }
+
+    for (let i = 0; i < virtualRows.current.length; i++) {
+      const row = virtualRows.current[i];
+      if (row.rowIndex < minRow.rowIndex) {
+        minRow = row;
+      }
+      if (row.rowIndex > maxRow.rowIndex) {
+        maxRow = row;
+      }
+    }
+    return { minColumn, minRow, maxColumn, maxRow };
+  }, []);
 
   /**
    * init containerSize, virtualColumns, virtualRows
@@ -68,42 +83,56 @@ export function VirtualizedGrid({
       const { layout } = event.nativeEvent;
       containerSize.current.setValue({ x: layout.width, y: layout.height });
 
-      const virtualColumnsCount =
-        Math.round(layout.width / defaultColumnWidth) + 1;
-      const virtualRowsCount = Math.round(layout.height / defaultRowHeight) + 1;
+      let virtualColumnsTotalWidth = 0;
+      let virtualRowsTotalHeight = 0;
+
+      for (const column of virtualColumns.current) {
+        virtualColumnsTotalWidth += column.width;
+      }
+      for (const row of virtualRows.current) {
+        virtualRowsTotalHeight += row.height;
+      }
+
+      const { maxRow, maxColumn } = getRange();
 
       /**
        * 填满virtualRows和virtualColumns
        */
-      let rowIndex = -1;
-      while (virtualRowsCount > virtualRows.current.length) {
+      let rowIndex = maxRow?.rowIndex ?? -1;
+      while (virtualRowsTotalHeight < layout.height) {
+        rowIndex++;
+        const rowHeight = getRowHeight({ rowIndex });
+        virtualRowsTotalHeight += rowHeight;
         if (virtualRows.current.length === 0) {
           virtualRows.current.push(
             new RowObject({
               y: 0,
-              height: defaultRowHeight,
-              rowIndex: ++rowIndex,
+              height: rowHeight,
+              rowIndex,
             })
           );
         } else {
           const prev = virtualRows.current[virtualRows.current.length - 1];
           virtualRows.current.push(
             new RowObject({
-              y: prev.y + defaultRowHeight,
-              height: defaultRowHeight,
-              rowIndex: ++rowIndex,
+              y: prev.y + prev.height,
+              height: rowHeight,
+              rowIndex,
             })
           );
         }
       }
-      let columnIndex = -1;
-      while (virtualColumnsCount > virtualColumns.current.length) {
+      let columnIndex = maxColumn?.columnIndex ?? -1;
+      while (virtualColumnsTotalWidth < layout.width) {
+        columnIndex++;
+        const columnWidth = getColumnWidth({ columnIndex });
+        virtualColumnsTotalWidth += columnWidth;
         if (virtualColumns.current.length === 0) {
           virtualColumns.current.push(
             new ColumnObject({
               x: 0,
-              width: defaultColumnWidth,
-              columnIndex: ++columnIndex,
+              width: columnWidth,
+              columnIndex,
             })
           );
         } else {
@@ -111,23 +140,48 @@ export function VirtualizedGrid({
             virtualColumns.current[virtualColumns.current.length - 1];
           virtualColumns.current.push(
             new ColumnObject({
-              width: defaultColumnWidth,
-              x: prev.x + defaultColumnWidth,
-              columnIndex: ++columnIndex,
+              width: columnWidth,
+              x: prev.x + prev.width,
+              columnIndex,
             })
           );
         }
       }
 
       /**
-       * 填满cells
+       * 增加额外的column和row
+       */
+      rowIndex++;
+      const rowHeight = getRowHeight({ rowIndex });
+      const prevRow = virtualRows.current[virtualRows.current.length - 1];
+      virtualRows.current.push(
+        new RowObject({
+          y: prevRow.y + prevRow.height,
+          height: rowHeight,
+          rowIndex,
+        })
+      );
+      columnIndex++;
+      const prevColumn =
+        virtualColumns.current[virtualColumns.current.length - 1];
+      const columnWidth = getColumnWidth({ columnIndex });
+      virtualColumns.current.push(
+        new ColumnObject({
+          width: columnWidth,
+          x: prevColumn.x + prevColumn.width,
+          columnIndex,
+        })
+      );
+
+      /**
+       * 重置cells
        * cells的数量是 (rowCount+1) * (columnCount+1)，因为
        * 会出现左边的cell还没消失
        */
       virtualCells.current = [];
-      for (let i = 0; i < virtualRowsCount; i++) {
+      for (let i = 0; i < virtualRows.current.length; i++) {
         const row = virtualRows.current[i];
-        for (let j = 0; j < virtualColumnsCount; j++) {
+        for (let j = 0; j < virtualColumns.current.length; j++) {
           const column = virtualColumns.current[j];
           virtualCells.current.push(
             new CellObject({
@@ -140,42 +194,134 @@ export function VirtualizedGrid({
 
       setLayoutCount((prev) => prev + 1);
     },
-    [defaultColumnWidth, defaultRowHeight]
+    [getColumnWidth, getRowHeight, getRange]
   );
 
   const updateCoordinate = useCallback(
-    (event) => {
+    (event: { deltaX: number; deltaY: number }) => {
       const { x, y } = JSON.parse(JSON.stringify(coordinate.current));
-      const { x: width, y: height } = JSON.parse(
-        JSON.stringify(contentSize.current)
-      );
       const { x: containerWidth, y: containerHeight } = JSON.parse(
         JSON.stringify(containerSize.current)
       );
 
       /**
+       * 如果移动过快，超过了逐次迁移元素的速度，那么拆分成多次操作，重复
+       * 调用updateCoordinate
+       */
+      let shouldSplitAction = false;
+      const splitAction = { deltaX: 0, deltaY: 0 };
+
+      /**
+       * (1/5)
+       * 获取当前的rowIndex范围和columnIndex范围
+       * 如果现在已经到最左边column或最右边column了，那就不再继续移动column，
+       * 同时coordinate.x最小值不能小于 containerWidth - (maxColumn.x+column.width)
+       * 也就是说coordinate.x区间是：[containerWidth - (maxColumn.x+column.width), 0]
+       *
+       * row同理
+       */
+      let { minColumn, maxColumn, minRow, maxRow } = getRange();
+
+      /**
+       * (2/5)
+       * 计算出minX,minY
+       * 根据deltaX位移计算需要展示的column,
+       * 逐个通过消耗deltaX，通过getColumnWidth获取宽度，直到deltaX额度用完
+       * 1. 判断maxColumn是否已经完全展示，
+       *    a. 未完全展示：deltaX -= maxColumn未完全展示的部分(deltaX等于0结束)
+       *       nextX -= maxColumn未完全展示的部分；-> 2
+       *    b. 完全展示：-> 2
+       * 2. 获取下一个maxColumn，判断deltaX剩余额度是否大于maxColumn宽度
+       *    a. 大于: deltaX -= maxColumn宽度，
+       *            nextX -= maxColumn宽度，-> 2
+       *    b. 小于等于：结束
+       *
+       * deltaY同理
+       *
+       * deltaX > 0 左移
+       * deltaX < 0 右移
+       * deltaY > 0 上移
+       * deltaY < 0 下移
+       */
+
+      let deltaX = event.deltaX;
+      let deltaY = event.deltaY;
+      let finalMaxColumnIndex = maxColumn.columnIndex;
+      let deltaX0 = maxColumn.x + maxColumn.width + x - containerWidth;
+      let finalMaxRowIndex = maxRow.rowIndex;
+      let deltaY0 = maxRow.y + maxRow.height + y - containerHeight;
+
+      // 左移补尾
+      if (deltaX > 0) {
+        while (deltaX > deltaX0) {
+          if (finalMaxColumnIndex === columnCount) {
+            break;
+          }
+          finalMaxColumnIndex++;
+          if (
+            finalMaxColumnIndex - maxColumn.columnIndex >=
+            virtualColumns.current.length
+          ) {
+            shouldSplitAction = true;
+            break;
+          }
+          const maxColumnWidth = getColumnWidth({
+            columnIndex: finalMaxColumnIndex,
+          });
+          deltaX0 += maxColumnWidth;
+        }
+        deltaX = Math.min(deltaX0, deltaX);
+        if (shouldSplitAction) {
+          splitAction.deltaX = event.deltaX - deltaX;
+        }
+      }
+      if (deltaY > 0) {
+        while (deltaY > deltaY0) {
+          if (finalMaxRowIndex === rowCount) {
+            break;
+          }
+          finalMaxRowIndex++;
+          if (
+            finalMaxRowIndex - maxRow.rowIndex >=
+            virtualRows.current.length
+          ) {
+            shouldSplitAction = true;
+            break;
+          }
+          const maxRowHeight = getRowHeight({
+            rowIndex: finalMaxRowIndex,
+          });
+          deltaY0 += maxRowHeight;
+        }
+        deltaY = Math.min(deltaY0, deltaY);
+        if (shouldSplitAction) {
+          splitAction.deltaY = event.deltaY - deltaY;
+        }
+      }
+
+      /**
+       * (3/5)
        * 更新左上角坐标，其他所有位置都依据这个坐标进行位移
        * x值区间：[containerWidth - contentWidth, 0]
        * y值区间：[containerHeight - contentHeight, 0]
        */
-      const minX = containerWidth - width;
-      const minY = containerHeight - height;
-      const nextX = Math.min(0, Math.max(minX, x - event.deltaX));
-      const nextY = Math.min(0, Math.max(minY, y - event.deltaY));
-      // const nextX2 = nextX + containerWidth;
-      // const nextY2 = nextY + containerHeight;
+      if (x - deltaX > 0) {
+        deltaX = x;
+      }
+      if (y - deltaY > 0) {
+        deltaY = y;
+      }
+
+      const nextX = x - deltaX;
+      const nextY = y - deltaY;
 
       coordinate.current.setValue({
         x: nextX,
         y: nextY,
       });
 
-      // console.log(
-      //   [x, x + containerWidth],
-      //   [nextX, nextX2],
-      //   JSON.parse(JSON.stringify(virtualColumns.current[0]))
-      // );
       /**
+       * (4/5)
        * 更新virtualColumns和virtualRows
        * 如果deltaX > 0 (往左边移), 将最左边在可视范围外的columns依次移动到末尾
        * 如果deltaX < 0（往右边移）, 将最右边在可视范围外的columns倒序依次移动到头部
@@ -185,27 +331,27 @@ export function VirtualizedGrid({
       const outsideRows: RowObject[] = [];
       const outsideCells: CellObject[] = [];
 
-      if (event.deltaX > 0) {
-        let maxColumnValue = NaN;
-        let maxColumnIndex = NaN;
+      // 左移，在末尾增加
+      if (deltaX > 0) {
         for (let i = 0; i < virtualColumns.current.length; i++) {
           const column = virtualColumns.current[i];
-          const columnValue = column.x;
-          if (i === 0) {
-            maxColumnValue = columnValue;
-            maxColumnIndex = column.columnIndex;
-          } else {
-            maxColumnValue = Math.max(columnValue, maxColumnValue);
-            maxColumnIndex = Math.max(column.columnIndex, maxColumnIndex);
-          }
 
           /**
            * 判断超出范围的依据是列的*右侧*小于0
            */
-          const isOutOfView = columnValue + nextX + column.width < 0;
+          const isOutOfView = column.x + nextX + column.width < 0;
           if (isOutOfView) {
             outsideColumns.push(column);
           }
+        }
+
+        /**
+         * 所有column均已超出屏幕，此时根据finalMaxIndex重新计算
+         * 所有的column的位置
+         */
+
+        if (outsideColumns.length === virtualColumns.current.length) {
+          console.error("This shoud not happen");
         }
         // console.log({ outsideColumns, maxColumnValue });
         if (outsideColumns.length > 0) {
@@ -216,27 +362,20 @@ export function VirtualizedGrid({
              * 再更新maxColumnValue以供下一个column使用
              */
             const column = outsideColumns[i];
-            column.columnIndex = maxColumnIndex + i + 1;
+            column.xAnimated.setValue(maxColumn.x + maxColumn.width);
+            column.columnIndex = maxColumn.columnIndex + 1;
             const columnWidth = getColumnWidth(column);
             column.widthAnimated.setValue(columnWidth);
-            maxColumnValue += columnWidth;
-            column.xAnimated.setValue(maxColumnValue);
+            maxColumn = column;
           }
         }
       }
-      if (event.deltaX < 0 && nextX !== 0) {
-        let minColumnValue = NaN;
-        let minColumnIndex = NaN;
+
+      // 右移，在头部增加
+      if (deltaX < 0) {
         for (let i = 0; i < virtualColumns.current.length; i++) {
           const column = virtualColumns.current[i];
           const columnValue = column.x;
-          if (i === 0) {
-            minColumnIndex = column.columnIndex;
-            minColumnValue = columnValue;
-          } else {
-            minColumnValue = Math.min(columnValue, minColumnValue);
-            minColumnIndex = Math.min(column.columnIndex, minColumnIndex);
-          }
 
           /**
            * 判断超出范围的依据是列的*左侧*大于containerWidth
@@ -249,74 +388,69 @@ export function VirtualizedGrid({
         // console.log({ outsideColumns, minColumnValue });
         if (outsideColumns.length > 0) {
           for (let i = 0; i < outsideColumns.length; i++) {
+            if (minColumn.columnIndex === 0) {
+              break;
+            }
             /**
              * 先更新columnIndex
              * 通过columnIndex拿到columnWidth
              * 再更新minColumnValue以供下一个column使用
              */
             const column = outsideColumns[i];
-            column.columnIndex = minColumnIndex - i - 1;
+            column.columnIndex = minColumn.columnIndex - 1;
             const columnWidth = getColumnWidth(column);
             column.widthAnimated.setValue(columnWidth);
-            minColumnValue -= columnWidth;
-            column.xAnimated.setValue(minColumnValue);
+            column.xAnimated.setValue(minColumn.x - columnWidth);
+            minColumn = column;
           }
         }
       }
 
-      if (event.deltaY > 0) {
-        let maxRowValue = NaN;
-        let maxRowIndex = NaN;
+      // 上移，在尾部增加
+      if (deltaY > 0) {
         for (let i = 0; i < virtualRows.current.length; i++) {
           const row = virtualRows.current[i];
-          const rowValue = row.y;
-          if (i === 0) {
-            maxRowValue = rowValue;
-            maxRowIndex = row.rowIndex;
-          } else {
-            maxRowValue = Math.max(rowValue, maxRowValue);
-            maxRowIndex = Math.max(row.rowIndex, maxRowIndex);
-          }
 
           /**
            * 判断超出范围的依据是行的*下侧*小于0
            */
-          const isOutOfView = rowValue + nextY + row.height < 0;
+          const isOutOfView = row.y + nextY + row.height < 0;
           if (isOutOfView) {
             outsideRows.push(row);
           }
         }
+
+        // console.log(outsideRows);
         // console.log({ outsideRows, maxRowValue });
+        /**
+         * 所有column均已超出屏幕，此时根据finalMaxIndex重新计算
+         * 所有的column的位置
+         */
+        if (outsideRows.length === virtualRows.current.length) {
+          console.error("Warning: This shoud not happen");
+        }
+
         if (outsideRows.length > 0) {
           for (let i = 0; i < outsideRows.length; i++) {
             const row = outsideRows[i];
-            row.rowIndex = maxRowIndex + i + 1;
+            row.rowIndex = maxRow.rowIndex + 1;
+            row.yAnimated.setValue(maxRow.y + maxRow.height);
             const rowHeight = getRowHeight(row);
-            maxRowValue += rowHeight;
-            row.yAnimated.setValue(maxRowValue);
             row.heightAnimated.setValue(rowHeight);
+            maxRow = row;
           }
         }
       }
 
-      if (event.deltaY < 0 && nextY !== 0) {
-        let minRowValue = NaN;
-        let minRowIndex = NaN;
+      // 下移，在头部增加
+      if (deltaY < 0) {
         for (let i = 0; i < virtualRows.current.length; i++) {
           const row = virtualRows.current[i];
-          const rowValue = row.y;
-          if (i === 0) {
-            minRowValue = rowValue;
-            minRowIndex = row.rowIndex;
-          } else {
-            minRowValue = Math.min(rowValue, minRowValue);
-            minRowIndex = Math.min(row.rowIndex, minRowIndex);
-          }
 
           /**
            * 判断超出范围的依据是行的*上侧*大于容器高度
            */
-          const isOutOfView = rowValue + nextY > containerHeight;
+          const isOutOfView = row.y + nextY > containerHeight;
           if (isOutOfView) {
             outsideRows.unshift(row);
           }
@@ -324,17 +458,21 @@ export function VirtualizedGrid({
         // console.log({ outsideRows, minRowValue });
         if (outsideRows.length > 0) {
           for (let i = 0; i < outsideRows.length; i++) {
+            if (minRow.rowIndex === 0) {
+              break;
+            }
             const row = outsideRows[i];
-            row.rowIndex = minRowIndex - i - 1;
+            row.rowIndex = minRow.rowIndex - 1;
             const rowHeight = getRowHeight(row);
-            minRowValue -= rowHeight;
-            row.yAnimated.setValue(minRowValue);
             row.heightAnimated.setValue(rowHeight);
+            row.yAnimated.setValue(minRow.y - row.height);
+            minRow = row;
           }
         }
       }
 
       /**
+       * (5/5)
        * 计算需要更新的cell，并调用update方法更新cell
        */
       for (let i = 0; i < virtualCells.current.length; i++) {
@@ -348,26 +486,44 @@ export function VirtualizedGrid({
         }
       }
 
-      for (const cell of outsideCells) {
-        cell.ref.current.update({
-          rowIndex: cell.row.rowIndex,
-          columnIndex: cell.column.columnIndex,
+      if (!shouldSplitAction) {
+        for (const cell of outsideCells) {
+          cell.ref.current.update({
+            rowIndex: cell.row.rowIndex,
+            columnIndex: cell.column.columnIndex,
+          });
+        }
+      }
+
+      // 继续未完成action
+      if (shouldSplitAction) {
+        console.log("splitAction", splitAction);
+        requestAnimationFrame(() => {
+          updateCoordinate(splitAction);
         });
       }
     },
-    [getColumnWidth, getRowHeight]
+    [getColumnWidth, getRange, columnCount, rowCount, getRowHeight]
+  );
+
+  const onWheel = useCallback(
+    (event) => {
+      const { deltaX, deltaY } = event;
+      updateCoordinate({ deltaX, deltaY });
+    },
+    [updateCoordinate]
   );
 
   useEffect(() => {
     if (Platform.OS === "web") {
       const el = view.current as any;
 
-      el.addEventListener("wheel", updateCoordinate);
+      el.addEventListener("wheel", onWheel);
       return () => {
-        el.removeEventListener("wheel", updateCoordinate);
+        el.removeEventListener("wheel", onWheel);
       };
     }
-  }, [updateCoordinate]);
+  }, [onWheel]);
 
   return (
     <View
@@ -375,52 +531,56 @@ export function VirtualizedGrid({
       style={[style, { overflow: "hidden" }]}
       onLayout={onContainerLayout}
     >
-      <Fragment key={`columns-${layoutCount}`}>
-        {virtualColumns.current.map((column, index) => {
-          return (
-            <Animated.View
-              key={index}
-              style={{
-                position: "absolute",
-                width: 1,
-                backgroundColor: "#000",
-                transform: [
-                  {
-                    translateX: Animated.add(
-                      column.xAnimated,
-                      coordinate.current.x
-                    ),
-                  },
-                ],
-                height: containerSize.current.y,
-              }}
-            />
-          );
-        })}
-      </Fragment>
-      <Fragment key={`rows-${layoutCount}`}>
-        {virtualRows.current.map((row, index) => {
-          return (
-            <Animated.View
-              key={index}
-              style={{
-                position: "absolute",
-                backgroundColor: "#000",
-                transform: [
-                  {
-                    translateY: Animated.add(
-                      row.yAnimated,
-                      coordinate.current.y
-                    ),
-                  },
-                ],
-                width: containerSize.current.x,
-                height: 1,
-              }}
-            />
-          );
-        })}
-      </Fragment>
+      {showColumnLine && (
+        <Fragment key={`columns-${layoutCount}`}>
+          {virtualColumns.current.map((column, index) => {
+            return (
+              <Animated.View
+                key={index}
+                style={{
+                  position: "absolute",
+                  width: 1,
+                  backgroundColor: "#ccc",
+                  transform: [
+                    {
+                      translateX: Animated.add(
+                        column.xAnimated,
+                        coordinate.current.x
+                      ),
+                    },
+                  ],
+                  height: containerSize.current.y,
+                }}
+              />
+            );
+          })}
+        </Fragment>
+      )}
+      {showRowLine && (
+        <Fragment key={`rows-${layoutCount}`}>
+          {virtualRows.current.map((row, index) => {
+            return (
+              <Animated.View
+                key={index}
+                style={{
+                  position: "absolute",
+                  backgroundColor: "#ccc",
+                  transform: [
+                    {
+                      translateY: Animated.add(
+                        row.yAnimated,
+                        coordinate.current.y
+                      ),
+                    },
+                  ],
+                  width: containerSize.current.x,
+                  height: 1,
+                }}
+              />
+            );
+          })}
+        </Fragment>
+      )}
       <Fragment key={`cells-${layoutCount}`}>
         {virtualCells.current.map((cell, index) => {
           return (

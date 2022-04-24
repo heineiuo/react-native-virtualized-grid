@@ -18,13 +18,17 @@ export const Cell = forwardRef<
     columnIndex: column.columnIndex,
   });
 
-  useImperativeHandle(ref, () => {
-    return {
-      update: (data) => {
-        setData(data);
-      },
-    } as CellMethods;
-  });
+  useImperativeHandle(
+    ref,
+    () => {
+      return {
+        update: (data) => {
+          setData(data);
+        },
+      } as CellMethods;
+    },
+    []
+  );
 
   return (
     <Animated.View
@@ -32,9 +36,6 @@ export const Cell = forwardRef<
         position: "absolute",
         width: column.widthAnimated,
         height: row.heightAnimated,
-        // borderTopWidth: 1,
-        // borderLeftWidth: 1,
-        // borderColor: "#eee",
         transform: [
           { translateX: Animated.add(column.xAnimated, coordinate.x) },
           { translateY: Animated.add(row.yAnimated, coordinate.y) },

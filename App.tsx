@@ -21,8 +21,10 @@ export default function App() {
   const { width, height } = useWindowDimensions();
   return (
     <VirtualizedGrid
-      columnCount={1000}
-      rowCount={1000}
+      columnCount={30}
+      rowCount={100}
+      showColumnLine={false}
+      showRowLine={false}
       style={{
         borderWidth: 1,
         borderColor: "#000",
@@ -37,7 +39,15 @@ export default function App() {
       }}
       renderCell={(info) => {
         return (
-          <View>
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: info.rowIndex % 2 === 1 ? "#eee" : "#fff",
+              borderTopWidth: 1,
+              borderLeftWidth: 1,
+              borderColor: "#ccc",
+            }}
+          >
             <Text>c: {info.columnIndex}</Text>
             <Text>r: {info.rowIndex}</Text>
           </View>
