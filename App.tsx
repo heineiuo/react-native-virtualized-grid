@@ -29,6 +29,12 @@ export default function App() {
         width,
         height,
       }}
+      getColumnWidth={(info: { columnIndex: number }) => {
+        return [100, 140, 200, 120][info.columnIndex % 4];
+      }}
+      getRowHeight={(info: { rowIndex: number }) => {
+        return [40, 50, 60, 90, 40, 45, 40, 50, 55, 50, 60][info.rowIndex % 10];
+      }}
       renderCell={(info) => {
         return (
           <View>

@@ -18,12 +18,16 @@ export function VirtualizedGrid({
   columnCount,
   rowCount,
   renderCell,
+  getColumnWidth = () => 100,
+  getRowHeight = () => 40,
 }: {
   style?: ViewStyle;
   defaultColumnWidth?: number;
   defaultRowHeight?: number;
   columnCount: number;
   rowCount: number;
+  getColumnWidth?: (info: { columnIndex: number }) => number;
+  getRowHeight?: (info: { rowIndex: number }) => number;
   renderCell: (info: { columnIndex: number; rowIndex: number }) => ReactNode;
 }) {
   const view = useRef<View>(null);
@@ -206,14 +210,21 @@ export function VirtualizedGrid({
         // console.log({ outsideColumns, maxColumnValue });
         if (outsideColumns.length > 0) {
           for (let i = 0; i < outsideColumns.length; i++) {
+            /**
+             * 先更新columnIndex
+             * 通过columnIndex拿到columnWidth
+             * 再更新maxColumnValue以供下一个column使用
+             */
             const column = outsideColumns[i];
-            column.xAnimated.setValue(
-              maxColumnValue + defaultColumnWidth * (i + 1)
-            );
             column.columnIndex = maxColumnIndex + i + 1;
+            const columnWidth = getColumnWidth(column);
+            column.widthAnimated.setValue(columnWidth);
+            maxColumnValue += columnWidth;
+            column.xAnimated.setValue(maxColumnValue);
           }
         }
-      } else {
+      }
+      if (event.deltaX < 0 && nextX !== 0) {
         let minColumnValue = NaN;
         let minColumnIndex = NaN;
         for (let i = 0; i < virtualColumns.current.length; i++) {
@@ -238,11 +249,17 @@ export function VirtualizedGrid({
         // console.log({ outsideColumns, minColumnValue });
         if (outsideColumns.length > 0) {
           for (let i = 0; i < outsideColumns.length; i++) {
+            /**
+             * 先更新columnIndex
+             * 通过columnIndex拿到columnWidth
+             * 再更新minColumnValue以供下一个column使用
+             */
             const column = outsideColumns[i];
-            column.xAnimated.setValue(
-              minColumnValue - defaultColumnWidth * (i + 1)
-            );
             column.columnIndex = minColumnIndex - i - 1;
+            const columnWidth = getColumnWidth(column);
+            column.widthAnimated.setValue(columnWidth);
+            minColumnValue -= columnWidth;
+            column.xAnimated.setValue(minColumnValue);
           }
         }
       }
@@ -273,11 +290,16 @@ export function VirtualizedGrid({
         if (outsideRows.length > 0) {
           for (let i = 0; i < outsideRows.length; i++) {
             const row = outsideRows[i];
-            row.yAnimated.setValue(maxRowValue + defaultRowHeight * (i + 1));
             row.rowIndex = maxRowIndex + i + 1;
+            const rowHeight = getRowHeight(row);
+            maxRowValue += rowHeight;
+            row.yAnimated.setValue(maxRowValue);
+            row.heightAnimated.setValue(rowHeight);
           }
         }
-      } else {
+      }
+
+      if (event.deltaY < 0 && nextY !== 0) {
         let minRowValue = NaN;
         let minRowIndex = NaN;
         for (let i = 0; i < virtualRows.current.length; i++) {
@@ -303,8 +325,11 @@ export function VirtualizedGrid({
         if (outsideRows.length > 0) {
           for (let i = 0; i < outsideRows.length; i++) {
             const row = outsideRows[i];
-            row.yAnimated.setValue(minRowValue - defaultRowHeight * (i + 1));
             row.rowIndex = minRowIndex - i - 1;
+            const rowHeight = getRowHeight(row);
+            minRowValue -= rowHeight;
+            row.yAnimated.setValue(minRowValue);
+            row.heightAnimated.setValue(rowHeight);
           }
         }
       }
@@ -330,7 +355,7 @@ export function VirtualizedGrid({
         });
       }
     },
-    [defaultRowHeight, defaultColumnWidth]
+    [getColumnWidth, getRowHeight]
   );
 
   useEffect(() => {
