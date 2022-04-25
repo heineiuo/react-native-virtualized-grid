@@ -1,14 +1,8 @@
-import {
-  Fragment,
-  ReactNode,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { Animated, Platform, View, ViewStyle } from "react-native";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Animated, Platform, View } from "react-native";
 
 import { Cell } from "./Cell";
+import { VirtualizedGridProps } from "./VirtualGridTypes";
 import { CellObject, ColumnObject, RowObject } from "./VirtualGridUtils";
 
 export function VirtualizedGrid({
@@ -20,23 +14,19 @@ export function VirtualizedGrid({
   getRowHeight = () => 40,
   showColumnLine = false,
   showRowLine = false,
-}: {
-  style?: ViewStyle;
-  defaultColumnWidth?: number;
-  defaultRowHeight?: number;
-  columnCount: number;
-  rowCount: number;
-  showRowLine?: boolean;
-  showColumnLine?: boolean;
-  getColumnWidth?: (info: { columnIndex: number }) => number;
-  getRowHeight?: (info: { rowIndex: number }) => number;
-  renderCell: (info: { columnIndex: number; rowIndex: number }) => ReactNode;
-}) {
+  freezedColumns = {},
+  freezedRows = {},
+}: VirtualizedGridProps) {
   const view = useRef<View>(null);
   const [layoutCount, setLayoutCount] = useState(0);
   const virtualColumns = useRef<ColumnObject[]>([]);
   const virtualRows = useRef<RowObject[]>([]);
   const virtualCells = useRef<CellObject[]>([]);
+
+  const freezedStartColumns = freezedColumns.start ?? 0;
+  const freezedEndColumns = freezedColumns.end ?? 0;
+  const freezedStartRows = freezedRows.start ?? 0;
+  const freezedEndRows = freezedRows.end ?? 0;
 
   /**
    * 左上角的坐标
@@ -55,6 +45,13 @@ export function VirtualizedGrid({
 
     for (let i = 0; i < virtualColumns.current.length; i++) {
       const column = virtualColumns.current[i];
+      if (column.freezed) {
+        continue;
+      }
+      if (minColumn.freezed) {
+        minColumn = column;
+        continue;
+      }
       if (column.columnIndex < minColumn.columnIndex) {
         minColumn = column;
       }
@@ -65,6 +62,13 @@ export function VirtualizedGrid({
 
     for (let i = 0; i < virtualRows.current.length; i++) {
       const row = virtualRows.current[i];
+      if (row.freezed) {
+        continue;
+      }
+      if (minRow.freezed) {
+        minRow = row;
+        continue;
+      }
       if (row.rowIndex < minRow.rowIndex) {
         minRow = row;
       }
@@ -109,6 +113,7 @@ export function VirtualizedGrid({
               y: 0,
               height: rowHeight,
               rowIndex,
+              freezed: rowIndex < freezedStartRows,
             })
           );
         } else {
@@ -118,6 +123,7 @@ export function VirtualizedGrid({
               y: prev.y + prev.height,
               height: rowHeight,
               rowIndex,
+              freezed: rowIndex < freezedStartRows,
             })
           );
         }
@@ -133,6 +139,7 @@ export function VirtualizedGrid({
               x: 0,
               width: columnWidth,
               columnIndex,
+              freezed: columnIndex < freezedStartColumns,
             })
           );
         } else {
@@ -143,35 +150,48 @@ export function VirtualizedGrid({
               width: columnWidth,
               x: prev.x + prev.width,
               columnIndex,
+              freezed: columnIndex < freezedStartColumns,
             })
           );
         }
       }
 
       /**
-       * 增加额外的column和row
+       * 增加额外的column和row,
+       * 1. 避免出现空白列/行
+       * 2. 补充freezed的空缺
        */
-      rowIndex++;
-      const rowHeight = getRowHeight({ rowIndex });
-      const prevRow = virtualRows.current[virtualRows.current.length - 1];
-      virtualRows.current.push(
-        new RowObject({
-          y: prevRow.y + prevRow.height,
-          height: rowHeight,
-          rowIndex,
-        })
-      );
-      columnIndex++;
-      const prevColumn =
-        virtualColumns.current[virtualColumns.current.length - 1];
-      const columnWidth = getColumnWidth({ columnIndex });
-      virtualColumns.current.push(
-        new ColumnObject({
-          width: columnWidth,
-          x: prevColumn.x + prevColumn.width,
-          columnIndex,
-        })
-      );
+      let extraRows = freezedStartRows + 1;
+      while (extraRows > 0) {
+        rowIndex++;
+        const rowHeight = getRowHeight({ rowIndex });
+        const prevRow = virtualRows.current[virtualRows.current.length - 1];
+        virtualRows.current.push(
+          new RowObject({
+            y: prevRow.y + prevRow.height,
+            height: rowHeight,
+            rowIndex,
+          })
+        );
+        extraRows--;
+      }
+
+      let extraColumns = freezedStartColumns + 1;
+      while (extraColumns > 0) {
+        columnIndex++;
+        const prevColumn =
+          virtualColumns.current[virtualColumns.current.length - 1];
+        const columnWidth = getColumnWidth({ columnIndex });
+        virtualColumns.current.push(
+          new ColumnObject({
+            width: columnWidth,
+            x: prevColumn.x + prevColumn.width,
+            columnIndex,
+          })
+        );
+
+        extraColumns--;
+      }
 
       /**
        * 重置cells
@@ -194,7 +214,13 @@ export function VirtualizedGrid({
 
       setLayoutCount((prev) => prev + 1);
     },
-    [getColumnWidth, getRowHeight, getRange]
+    [
+      getColumnWidth,
+      getRowHeight,
+      getRange,
+      freezedStartColumns,
+      freezedStartRows,
+    ]
   );
 
   const updateCoordinate = useCallback(
@@ -339,7 +365,9 @@ export function VirtualizedGrid({
           /**
            * 判断超出范围的依据是列的*右侧*小于0
            */
-          const isOutOfView = column.x + nextX + column.width < 0;
+          const isOutOfView =
+            !column.freezed &&
+            column.x + nextX + column.width < freezedStartColumns;
           if (isOutOfView) {
             outsideColumns.push(column);
           }
@@ -380,7 +408,8 @@ export function VirtualizedGrid({
           /**
            * 判断超出范围的依据是列的*左侧*大于containerWidth
            */
-          const isOutOfView = columnValue + nextX > containerWidth;
+          const isOutOfView =
+            !column.freezed && columnValue + nextX > containerWidth;
           if (isOutOfView) {
             outsideColumns.unshift(column);
           }
@@ -414,7 +443,8 @@ export function VirtualizedGrid({
           /**
            * 判断超出范围的依据是行的*下侧*小于0
            */
-          const isOutOfView = row.y + nextY + row.height < 0;
+          const isOutOfView =
+            !row.freezed && row.y + nextY + row.height < freezedStartRows;
           if (isOutOfView) {
             outsideRows.push(row);
           }
@@ -450,7 +480,7 @@ export function VirtualizedGrid({
           /**
            * 判断超出范围的依据是行的*上侧*大于容器高度
            */
-          const isOutOfView = row.y + nextY > containerHeight;
+          const isOutOfView = !row.freezed && row.y + nextY > containerHeight;
           if (isOutOfView) {
             outsideRows.unshift(row);
           }
@@ -505,7 +535,15 @@ export function VirtualizedGrid({
         });
       }
     },
-    [getColumnWidth, getRange, columnCount, rowCount, getRowHeight]
+    [
+      getColumnWidth,
+      getRange,
+      columnCount,
+      rowCount,
+      getRowHeight,
+      freezedStartColumns,
+      freezedStartRows,
+    ]
   );
 
   const onWheel = useCallback(

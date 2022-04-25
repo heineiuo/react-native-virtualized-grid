@@ -23,6 +23,8 @@ export default function App() {
     <VirtualizedGrid
       columnCount={Number.MAX_SAFE_INTEGER}
       rowCount={Number.MAX_SAFE_INTEGER}
+      freezedColumns={{ start: 3 }}
+      freezedRows={{ start: 3 }}
       style={{
         borderWidth: 1,
         borderColor: "#000",

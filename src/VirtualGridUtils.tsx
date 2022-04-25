@@ -70,19 +70,23 @@ export class ColumnObject {
     x,
     width,
     columnIndex,
+    freezed = false,
   }: {
     x: number;
     width: number;
     columnIndex: number;
+    freezed?: boolean;
   }) {
     this.xAnimated = new Animated.Value(x);
     this.widthAnimated = new Animated.Value(width);
     this.columnIndex = columnIndex;
+    this.freezed = freezed;
   }
 
   columnIndex: number;
   xAnimated: Animated.Value;
   widthAnimated: Animated.Value;
+  freezed: boolean;
 
   get x(): number {
     return JSON.parse(JSON.stringify(this.xAnimated));
@@ -97,19 +101,23 @@ export class RowObject {
     y,
     height,
     rowIndex,
+    freezed = false,
   }: {
     y: number;
     height: number;
     rowIndex: number;
+    freezed?: boolean;
   }) {
     this.yAnimated = new Animated.Value(y);
     this.heightAnimated = new Animated.Value(height);
     this.rowIndex = rowIndex;
+    this.freezed = freezed;
   }
 
   rowIndex: number;
   yAnimated: Animated.Value;
   heightAnimated: Animated.Value;
+  freezed: boolean;
 
   get y(): number {
     return JSON.parse(JSON.stringify(this.yAnimated));
