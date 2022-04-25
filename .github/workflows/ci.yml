@@ -30,6 +30,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: 🏗 Setup Expo
+        uses: expo/expo-github-action@v7
+        with:
+          expo-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
       - name: Echo Infomation
         run: |
           echo "event name: ${{github.event_name}}"
