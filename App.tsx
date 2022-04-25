@@ -25,12 +25,19 @@ export default function App() {
       rowCount={Number.MAX_SAFE_INTEGER}
       freezedColumns={{ start: 3 }}
       freezedRows={{ start: 3 }}
-      style={{
-        borderWidth: 1,
-        borderColor: "#000",
-        width,
-        height,
-      }}
+      style={[
+        {
+          borderWidth: 1,
+          borderColor: "#000",
+          width,
+          height,
+        },
+        Platform.select({
+          web: {
+            userSelect: "none",
+          },
+        }) as unknown,
+      ]}
       getColumnWidth={(info: { columnIndex: number }) => {
         return [100, 140, 200, 120][info.columnIndex % 4];
       }}

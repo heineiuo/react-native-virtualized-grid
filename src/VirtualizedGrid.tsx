@@ -596,7 +596,7 @@ export function VirtualizedGrid({
   return (
     <View
       ref={view}
-      style={[style, { overflow: "hidden", userSelect: "none" }]}
+      style={[style, { overflow: "hidden" }]}
       onLayout={onContainerLayout}
       {...panResponder.panHandlers}
     >

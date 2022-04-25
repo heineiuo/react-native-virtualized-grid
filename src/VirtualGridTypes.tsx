@@ -1,12 +1,12 @@
 import { ReactNode } from "react";
-import { ViewStyle } from "react-native";
+import { StyleProp, ViewStyle } from "react-native";
 
 export type CellMethods = {
   update: (info: { rowIndex: number; columnIndex: number }) => ReactNode;
 };
 
 export type VirtualizedGridProps = {
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   freezedColumns?: {
     /**
      * how many columns should be freezed to left
