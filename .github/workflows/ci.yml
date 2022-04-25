@@ -24,13 +24,13 @@ jobs:
           path: |
             **/node_modules
           key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-          cache: yarn
+          cache: npm
 
       - name: 🏗 Setup Node
         uses: actions/setup-node@v2
         with:
           node-version: 16.x
-          cache: yarn
+          cache: npm
 
       - name: 🏗 Setup Expo
         uses: expo/expo-github-action@v7
