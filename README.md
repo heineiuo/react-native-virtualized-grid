@@ -17,3 +17,4 @@ https://user-images.githubusercontent.com/3146159/164953096-f716ba1e-c149-43a0-a
 - [ ] Support drag to resize column width [#2](https://github.com/heineiuo/react-native-virtualized-grid/issues/2)
 - [ ] Support drag to resize row height
 - [ ] Support freeze columns and rows
+- [ ] Add virtual scroller [#3](https://github.com/heineiuo/react-native-virtualized-grid/issues/3)
