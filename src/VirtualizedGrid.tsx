@@ -497,7 +497,9 @@ export function VirtualizedGrid({
 
       // 继续未完成action
       if (shouldSplitAction) {
-        console.log("splitAction", splitAction);
+        if (__DEV__) {
+          console.log("splitAction", splitAction);
+        }
         requestAnimationFrame(() => {
           updateCoordinate(splitAction);
         });
