@@ -5,7 +5,7 @@
   "scripts": {
     "build:commonjs": "babel src --out-dir lib/commonjs --extensions '.ts,.tsx' --source-maps",
     "build:module": "tsc src/*.tsx --module es2015 --target es6 --jsx 'react-native' --sourceMap --skipLibCheck --allowSyntheticDefaultImports --outDir lib/module",
-    "build:typescript": "tsc src/*.tsx --declaration --emitDeclarationOnly --jsx 'react-native'  --skipLibCheck --allowSyntheticDefaultImports  --outDir lib/typescript",
+    "build:typescript": "tsc src/*.tsx --declaration --target es6 --emitDeclarationOnly --jsx 'react-native'  --skipLibCheck --allowSyntheticDefaultImports  --outDir lib/typescript",
     "prepublishOnly": "node scripts/prepublishOnly.js",
     "postpublish": "node scripts/postpublish.js",
     "build:web": "expo build:web",
