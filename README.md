@@ -12,8 +12,8 @@ https://user-images.githubusercontent.com/3146159/164953096-f716ba1e-c149-43a0-a
 ## Roadmap
 
 - [x] Web(desktop) support
-- [ ] Web(mobile) support
-- [ ] Native support
+- [x] Web(mobile) support [#6](https://github.com/heineiuo/react-native-virtualized-grid/issues/6)
+- [x] Native support [#6](https://github.com/heineiuo/react-native-virtualized-grid/issues/6)
 - [ ] Support drag to resize column width [#2](https://github.com/heineiuo/react-native-virtualized-grid/issues/2)
 - [ ] Support drag to resize row height
 - [x] Support freeze head columns and head rows [#4](https://github.com/heineiuo/react-native-virtualized-grid/issues/4)

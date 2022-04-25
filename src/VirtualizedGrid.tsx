@@ -1,5 +1,12 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
-import { Animated, Platform, View } from "react-native";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Animated, Platform, View, PanResponder } from "react-native";
 
 import { Cell } from "./Cell";
 import { VirtualizedGridProps } from "./VirtualGridTypes";
@@ -565,11 +572,33 @@ export function VirtualizedGrid({
     }
   }, [onWheel]);
 
+  const panResponder = useMemo(() => {
+    let prevGestureState = null;
+    return PanResponder.create({
+      onPanResponderGrant: (event, gestureState) => {
+        prevGestureState = { ...gestureState };
+      },
+      onMoveShouldSetPanResponder: () => {
+        return true;
+      },
+      onPanResponderMove: (event, gestureState) => {
+        const deltaX = -gestureState.dx + prevGestureState.dx;
+        const deltaY = -gestureState.dy + prevGestureState.dy;
+        prevGestureState = { ...gestureState };
+        updateCoordinate({
+          deltaX,
+          deltaY,
+        });
+      },
+    });
+  }, [updateCoordinate]);
+
   return (
     <View
       ref={view}
-      style={[style, { overflow: "hidden" }]}
+      style={[style, { overflow: "hidden", userSelect: "none" }]}
       onLayout={onContainerLayout}
+      {...panResponder.panHandlers}
     >
       {showColumnLine && (
         <Fragment key={`columns-${layoutCount}`}>
