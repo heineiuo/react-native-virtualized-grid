@@ -7,10 +7,12 @@ import React, {
   useState,
 } from "react";
 import {
+  ActivityIndicator,
   Animated,
   Platform,
   SafeAreaView,
   Text,
+  TextInput,
   TouchableOpacity,
   useWindowDimensions,
   View,
@@ -29,12 +31,12 @@ export default function App() {
     <VirtualizedGrid
       columnCount={Number.MAX_SAFE_INTEGER}
       rowCount={Number.MAX_SAFE_INTEGER}
-      freezedColumns={{ start: 3 }}
-      freezedRows={{ start: 3 }}
+      freezedColumns={{ start: 1 }}
+      freezedRows={{ start: 1 }}
       style={[
         {
-          borderWidth: 1,
-          borderColor: "#000",
+          // borderWidth: 1,
+          borderColor: "#fff",
           width,
           height,
         },
@@ -45,7 +47,7 @@ export default function App() {
         }) as unknown,
       ]}
       getColumnWidth={(info: { columnIndex: number }) => {
-        return [100, 140, 200, 120][info.columnIndex % 4];
+        return [50, 140, 200, 120][info.columnIndex % 4];
       }}
       getRowHeight={(info: { rowIndex: number }) => {
         return [40, 50, 60, 90, 40, 45, 40, 50, 55, 50, 60][info.rowIndex % 10];
@@ -56,15 +58,21 @@ export default function App() {
             style={{
               flex: 1,
               backgroundColor:
-                (info.rowIndex + info.columnIndex) % 2 === 1 ? "#eee" : "#fff",
+                info.rowIndex % 2 === 1 ? "rgb(246, 248, 250)" : "#fff",
               borderTopWidth: 1,
               borderLeftWidth: 1,
-              borderColor: "#ccc",
+              borderColor: "rgb(216, 222, 228)",
               padding: 4,
+              borderRightWidth: info.columnIndex === 0 ? 1 : 0,
+              borderBottomWidth: info.rowIndex === 0 ? 1 : 0,
             }}
           >
-            <Text>c: {info.columnIndex}</Text>
-            <Text>r: {info.rowIndex}</Text>
+            {info.columnIndex === 0 && info.rowIndex === 0 ? null : (
+              <>
+                <Text>c: {info.columnIndex}</Text>
+                <Text>r: {info.rowIndex}</Text>
+              </>
+            )}
           </View>
         );
       }}
