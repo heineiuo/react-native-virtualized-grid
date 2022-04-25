@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -19,6 +20,11 @@ import { VirtualizedGrid } from "./src/index";
 
 export default function App() {
   const { width, height } = useWindowDimensions();
+  useLayoutEffect(() => {
+    if (Platform.OS === "web") {
+      document.body.style.overflow = "hidden";
+    }
+  }, []);
   return (
     <VirtualizedGrid
       columnCount={Number.MAX_SAFE_INTEGER}
