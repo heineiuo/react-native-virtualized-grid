@@ -26,10 +26,11 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
           cache: yarn
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 16.x
+          cache: yarn
 
       - name: 🏗 Setup Expo
         uses: expo/expo-github-action@v7
@@ -85,7 +86,7 @@ jobs:
           echo '//registry.npmjs.org/:_authToken=${{secrets.NPM_TOKEN}}' > ~/.npmrc
           npm publish
 
-      - name: Deploy 🚀
+      - name: 🚀 Deploy
         if: |
           github.event_name == 'push'
         uses: JamesIves/github-pages-deploy-action@v4.3.0
