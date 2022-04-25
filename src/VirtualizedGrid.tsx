@@ -18,8 +18,8 @@ export function VirtualizedGrid({
   renderCell,
   getColumnWidth = () => 100,
   getRowHeight = () => 40,
-  showColumnLine = true,
-  showRowLine = true,
+  showColumnLine = false,
+  showRowLine = false,
 }: {
   style?: ViewStyle;
   defaultColumnWidth?: number;
@@ -260,7 +260,7 @@ export function VirtualizedGrid({
           finalMaxColumnIndex++;
           if (
             finalMaxColumnIndex - maxColumn.columnIndex >=
-            virtualColumns.current.length
+            virtualColumns.current.length - 2
           ) {
             shouldSplitAction = true;
             break;
@@ -283,7 +283,7 @@ export function VirtualizedGrid({
           finalMaxRowIndex++;
           if (
             finalMaxRowIndex - maxRow.rowIndex >=
-            virtualRows.current.length
+            virtualRows.current.length - 2
           ) {
             shouldSplitAction = true;
             break;
