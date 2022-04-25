@@ -24,6 +24,7 @@ jobs:
           path: |
             **/node_modules
           key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          cache: yarn
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
