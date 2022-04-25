@@ -35,10 +35,19 @@ export const Cell = forwardRef<
       style={{
         position: "absolute",
         width: column.widthAnimated,
+        zIndex: (column.freezed ? 1 : 0) + (row.freezed ? 1 : 0),
         height: row.heightAnimated,
         transform: [
-          { translateX: Animated.add(column.xAnimated, coordinate.x) },
-          { translateY: Animated.add(row.yAnimated, coordinate.y) },
+          {
+            translateX: column.freezed
+              ? column.xAnimated
+              : Animated.add(column.xAnimated, coordinate.x),
+          },
+          {
+            translateY: row.freezed
+              ? row.yAnimated
+              : Animated.add(row.yAnimated, coordinate.y),
+          },
         ],
       }}
     >
