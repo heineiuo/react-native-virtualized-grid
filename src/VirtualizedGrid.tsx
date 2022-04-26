@@ -11,6 +11,7 @@ import { Animated, Platform, View, PanResponder } from "react-native";
 import { Cell } from "./Cell";
 import { VirtualizedGridProps } from "./VirtualGridTypes";
 import { CellObject, ColumnObject, RowObject } from "./VirtualGridUtils";
+import { VirtualizedGridContext } from "./VirtualizedGridContext";
 
 export function VirtualizedGrid({
   style,
@@ -535,7 +536,7 @@ export function VirtualizedGrid({
       // 继续未完成action
       if (shouldSplitAction) {
         if (__DEV__) {
-          console.log("splitAction", splitAction);
+          console.log("[DEV] splitAction", splitAction);
         }
         requestAnimationFrame(() => {
           updateCoordinate(splitAction);
@@ -594,76 +595,87 @@ export function VirtualizedGrid({
   }, [updateCoordinate]);
 
   return (
-    <View
-      ref={view}
-      style={[style, { overflow: "hidden" }]}
-      onLayout={onContainerLayout}
-      {...panResponder.panHandlers}
+    <VirtualizedGridContext.Provider
+      value={{
+        virtualColumns,
+        virtualCells,
+        virtualRows,
+        coordinate,
+        containerSize,
+        updateCoordinate,
+      }}
     >
-      {showColumnLine && (
-        <Fragment key={`columns-${layoutCount}`}>
-          {virtualColumns.current.map((column, index) => {
+      <View
+        ref={view}
+        style={[style, { overflow: "hidden" }]}
+        onLayout={onContainerLayout}
+        {...panResponder.panHandlers}
+      >
+        {showColumnLine && (
+          <Fragment key={`columns-${layoutCount}`}>
+            {virtualColumns.current.map((column, index) => {
+              return (
+                <Animated.View
+                  key={index}
+                  style={{
+                    position: "absolute",
+                    width: 1,
+                    backgroundColor: "#ccc",
+                    transform: [
+                      {
+                        translateX: Animated.add(
+                          column.xAnimated,
+                          coordinate.current.x
+                        ),
+                      },
+                    ],
+                    height: containerSize.current.y,
+                  }}
+                />
+              );
+            })}
+          </Fragment>
+        )}
+        {showRowLine && (
+          <Fragment key={`rows-${layoutCount}`}>
+            {virtualRows.current.map((row, index) => {
+              return (
+                <Animated.View
+                  key={index}
+                  style={{
+                    position: "absolute",
+                    backgroundColor: "#ccc",
+                    transform: [
+                      {
+                        translateY: Animated.add(
+                          row.yAnimated,
+                          coordinate.current.y
+                        ),
+                      },
+                    ],
+                    width: containerSize.current.x,
+                    height: 1,
+                  }}
+                />
+              );
+            })}
+          </Fragment>
+        )}
+        <Fragment key={`cells-${layoutCount}`}>
+          {virtualCells.current.map((cell, index) => {
             return (
-              <Animated.View
+              <Cell
+                coordinate={coordinate.current}
+                ref={cell.ref}
                 key={index}
-                style={{
-                  position: "absolute",
-                  width: 1,
-                  backgroundColor: "#ccc",
-                  transform: [
-                    {
-                      translateX: Animated.add(
-                        column.xAnimated,
-                        coordinate.current.x
-                      ),
-                    },
-                  ],
-                  height: containerSize.current.y,
-                }}
+                column={cell.column}
+                row={cell.row}
+                renderCell={renderCell}
               />
             );
           })}
         </Fragment>
-      )}
-      {showRowLine && (
-        <Fragment key={`rows-${layoutCount}`}>
-          {virtualRows.current.map((row, index) => {
-            return (
-              <Animated.View
-                key={index}
-                style={{
-                  position: "absolute",
-                  backgroundColor: "#ccc",
-                  transform: [
-                    {
-                      translateY: Animated.add(
-                        row.yAnimated,
-                        coordinate.current.y
-                      ),
-                    },
-                  ],
-                  width: containerSize.current.x,
-                  height: 1,
-                }}
-              />
-            );
-          })}
-        </Fragment>
-      )}
-      <Fragment key={`cells-${layoutCount}`}>
-        {virtualCells.current.map((cell, index) => {
-          return (
-            <Cell
-              coordinate={coordinate.current}
-              ref={cell.ref}
-              key={index}
-              column={cell.column}
-              row={cell.row}
-              renderCell={renderCell}
-            />
-          );
-        })}
-      </Fragment>
-    </View>
+      </View>
+    </VirtualizedGridContext.Provider>
   );
 }
