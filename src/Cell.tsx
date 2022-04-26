@@ -10,7 +10,12 @@ export const Cell = forwardRef<
     coordinate: Animated.AnimatedValueXY;
     column: ColumnObject;
     row: RowObject;
-    renderCell: (info: { columnIndex: number; rowIndex: number }) => ReactNode;
+    renderCell: (info: {
+      columnIndex: number;
+      rowIndex: number;
+      column: ColumnObject;
+      row: RowObject;
+    }) => ReactNode;
   }
 >(({ renderCell, column, row, coordinate }, ref) => {
   const [data, setData] = useState({
@@ -51,7 +56,7 @@ export const Cell = forwardRef<
         ],
       }}
     >
-      {renderCell(data)}
+      {renderCell({ ...data, column, row })}
     </Animated.View>
   );
 });

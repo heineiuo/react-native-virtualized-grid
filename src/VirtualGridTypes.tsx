@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
 import { StyleProp, ViewStyle } from "react-native";
 
+import { ColumnObject, RowObject } from "./VirtualGridUtils";
+
 export type CellMethods = {
   update: (info: { rowIndex: number; columnIndex: number }) => ReactNode;
 };
@@ -33,5 +35,12 @@ export type VirtualizedGridProps = {
   showColumnLine?: boolean;
   getColumnWidth?: (info: { columnIndex: number }) => number;
   getRowHeight?: (info: { rowIndex: number }) => number;
-  renderCell: (info: { columnIndex: number; rowIndex: number }) => ReactNode;
+  renderCell: (info: {
+    columnIndex: number;
+    rowIndex: number;
+    row: RowObject;
+    column: ColumnObject;
+  }) => ReactNode;
+  onChangeColumn?: (column: ColumnObject) => void;
+  onChangeRow?: (row: RowObject) => void;
 };
