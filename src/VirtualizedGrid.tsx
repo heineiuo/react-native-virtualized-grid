@@ -18,6 +18,8 @@ export function VirtualizedGrid({
   columnCount,
   rowCount,
   renderCell,
+  onChangeColumn = (column: ColumnObject) => undefined,
+  onChangeRow = (row: RowObject) => undefined,
   getColumnWidth = () => 100,
   getRowHeight = () => 40,
   showColumnLine = false,
@@ -597,6 +599,8 @@ export function VirtualizedGrid({
   return (
     <VirtualizedGridContext.Provider
       value={{
+        onChangeColumn,
+        onChangeRow,
         virtualColumns,
         virtualCells,
         virtualRows,

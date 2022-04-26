@@ -4,25 +4,17 @@ import { Pressable, Animated, PanResponder } from "react-native";
 import { ColumnObject, RowObject } from "./VirtualGridUtils";
 import { useGrid } from "./VirtualizedGridContext";
 
-export function ColumnResizer({
+export function RowResizer({
   column,
   row,
 }: {
   column: ColumnObject;
   row: RowObject;
 }) {
-  const {
-    virtualColumns,
-    virtualRows,
-    virtualCells,
-    updateCoordinate,
-    coordinate,
-    containerSize,
-    onChangeColumn,
-  } = useGrid();
+  const { virtualRows, onChangeRow } = useGrid();
 
   const panResponder = useMemo(() => {
-    let rightColumns = [];
+    let bottomRows = [];
 
     return PanResponder.create({
       onPanResponderTerminate: (event, gestureState) => {
@@ -43,35 +35,35 @@ export function ColumnResizer({
 
       onPanResponderGrant: () => {
         __DEV__ && console.log("[resizer] grant");
-        column.widthAnimated.setOffset(column.width);
-        rightColumns = [];
-        for (const item of virtualColumns.current) {
-          if (item.columnIndex > column.columnIndex) {
-            rightColumns.push(item);
-            item.xAnimated.setOffset(item.x);
+        row.heightAnimated.setOffset(row.height);
+        bottomRows = [];
+        for (const item of virtualRows.current) {
+          if (item.rowIndex > row.rowIndex) {
+            bottomRows.push(item);
+            item.yAnimated.setOffset(item.y);
           }
         }
       },
 
       onPanResponderMove: (event, gestureState) => {
         __DEV__ && console.log("[resizer] move");
-        for (const item of rightColumns) {
-          item.xAnimated.setValue(gestureState.dx);
+        for (const item of bottomRows) {
+          item.yAnimated.setValue(gestureState.dy);
         }
-        column.widthAnimated.setValue(gestureState.dx);
-        onChangeColumn(column);
+        row.heightAnimated.setValue(gestureState.dy);
+        onChangeRow(row);
       },
 
       onPanResponderRelease: () => {
         __DEV__ && console.log("[resizer] release");
-        column.widthAnimated.flattenOffset();
-        for (const item of rightColumns) {
-          item.xAnimated.flattenOffset();
+        row.heightAnimated.flattenOffset();
+        for (const item of bottomRows) {
+          item.yAnimated.flattenOffset();
         }
-        rightColumns = [];
+        bottomRows = [];
       },
     });
-  }, [column, virtualColumns, onChangeColumn]);
+  }, [row, virtualRows, onChangeRow]);
 
   return (
     <Animated.View
@@ -79,11 +71,11 @@ export function ColumnResizer({
       style={[
         {
           position: "absolute",
-          top: 0,
-          right: 0,
+          bottom: 0,
+          left: 0,
           zIndex: 10,
-          height: row.height,
-          width: 20,
+          height: 20,
+          width: column.width,
         },
       ]}
     >
@@ -91,8 +83,9 @@ export function ColumnResizer({
         style={[
           {
             display: "flex",
-            alignItems: "flex-end",
-            height: row.height,
+            justifyContent: "flex-end",
+            width: column.width,
+            height: 20,
           },
         ]}
       >
@@ -102,12 +95,12 @@ export function ColumnResizer({
             <Animated.View
               style={[
                 {
-                  height: row.heightAnimated,
-                  width: 1,
+                  width: column.widthAnimated,
+                  height: 1,
                   backgroundColor: "#ccc",
                 },
                 hovered && {
-                  width: 5,
+                  height: 5,
                   backgroundColor: "blue",
                 },
               ]}

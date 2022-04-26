@@ -41,4 +41,6 @@ export type VirtualizedGridProps = {
     row: RowObject;
     column: ColumnObject;
   }) => ReactNode;
+  onChangeColumn?: (column: ColumnObject) => void;
+  onChangeRow?: (row: RowObject) => void;
 };

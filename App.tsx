@@ -1,11 +1,27 @@
-import React, { useLayoutEffect } from "react";
+import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Platform, Text, useWindowDimensions, View } from "react-native";
 
 import { Header } from "./docs/Header";
-import { VirtualizedGrid, ColumnResizer } from "./src/index";
+import { RowResizer } from "./src/RowResizer";
+import {
+  VirtualizedGrid,
+  ColumnResizer,
+  ColumnObject,
+  RowObject,
+} from "./src/index";
 
 export default function App() {
   const { width, height } = useWindowDimensions();
+  const columnWidthCache = useRef(new Map<string, number>());
+  const rowHeightCache = useRef(new Map<string, number>());
+
+  const updateColumn = useCallback((column: ColumnObject) => {
+    columnWidthCache.current.set(`${column.columnIndex}`, column.width);
+  }, []);
+  const updateRow = useCallback((row: RowObject) => {
+    columnWidthCache.current.set(`${row.rowIndex}`, row.height);
+  }, []);
+
   useLayoutEffect(() => {
     if (Platform.OS === "web") {
       document.body.style.overflow = "hidden";
@@ -34,13 +50,21 @@ export default function App() {
           }) as unknown,
         ]}
         getColumnWidth={(info: { columnIndex: number }) => {
+          if (columnWidthCache.current.has(`${info.columnIndex}`)) {
+            return columnWidthCache.current.get(`${info.columnIndex}`);
+          }
           return [50, 140, 200, 120][info.columnIndex % 4];
         }}
         getRowHeight={(info: { rowIndex: number }) => {
+          if (rowHeightCache.current.has(`${info.rowIndex}`)) {
+            return rowHeightCache.current.get(`${info.rowIndex}`);
+          }
           return [40, 50, 60, 90, 40, 45, 40, 50, 55, 50, 60][
             info.rowIndex % 10
           ];
         }}
+        onChangeColumn={updateColumn}
+        onChangeRow={updateRow}
         renderCell={(info) => {
           return (
             <View
@@ -64,6 +88,9 @@ export default function App() {
               )}
               {info.rowIndex === 0 && (
                 <ColumnResizer row={info.row} column={info.column} />
+              )}
+              {info.columnIndex === 0 && (
+                <RowResizer row={info.row} column={info.column} />
               )}
             </View>
           );
