@@ -19,7 +19,7 @@ export default function App() {
     columnWidthCache.current.set(`${column.columnIndex}`, column.width);
   }, []);
   const updateRow = useCallback((row: RowObject) => {
-    columnWidthCache.current.set(`${row.rowIndex}`, row.height);
+    rowHeightCache.current.set(`${row.rowIndex}`, row.height);
   }, []);
 
   useLayoutEffect(() => {
