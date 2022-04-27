@@ -2,12 +2,12 @@ import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Platform, Text, useWindowDimensions, View } from "react-native";
 
 import { Header } from "./docs/Header";
-import { RowResizer } from "./src/RowResizer";
 import {
   VirtualizedGrid,
   ColumnResizer,
   ColumnObject,
   RowObject,
+  RowResizer,
 } from "./src/index";
 
 export default function App() {

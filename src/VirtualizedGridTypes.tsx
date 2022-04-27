@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { StyleProp, ViewStyle } from "react-native";
 
-import { ColumnObject, RowObject } from "./VirtualGridUtils";
+import { ColumnObject, RowObject } from "./VirtualizedGridUtils";
 
 export type CellMethods = {
   update: (info: { rowIndex: number; columnIndex: number }) => ReactNode;

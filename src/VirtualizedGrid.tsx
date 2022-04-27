@@ -9,9 +9,9 @@ import {
 import { Animated, Platform, View, PanResponder } from "react-native";
 
 import { Cell } from "./Cell";
-import { VirtualizedGridProps } from "./VirtualGridTypes";
-import { CellObject, ColumnObject, RowObject } from "./VirtualGridUtils";
 import { VirtualizedGridContext } from "./VirtualizedGridContext";
+import { VirtualizedGridProps } from "./VirtualizedGridTypes";
+import { CellObject, ColumnObject, RowObject } from "./VirtualizedGridUtils";
 
 export function VirtualizedGrid({
   style,

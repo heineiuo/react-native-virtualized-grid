@@ -1,7 +1,7 @@
 import { createRef, RefObject } from "react";
 import { Animated } from "react-native";
 
-import { CellMethods } from "./VirtualGridTypes";
+import { CellMethods } from "./VirtualizedGridTypes";
 
 export class CoordinateObject {
   constructor() {

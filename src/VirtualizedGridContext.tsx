@@ -1,7 +1,7 @@
 import { createContext, MutableRefObject, useContext } from "react";
 import { Animated } from "react-native";
 
-import { CellObject, ColumnObject, RowObject } from "./VirtualGridUtils";
+import { CellObject, ColumnObject, RowObject } from "./VirtualizedGridUtils";
 
 export type VirtualizedGridState = {
   virtualColumns: MutableRefObject<ColumnObject[]>;
