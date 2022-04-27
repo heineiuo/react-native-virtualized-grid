@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
 import { Pressable, Animated, PanResponder } from "react-native";
 
-import { ColumnObject, RowObject } from "./VirtualGridUtils";
 import { useGrid } from "./VirtualizedGridContext";
+import { ColumnObject, RowObject } from "./VirtualizedGridUtils";
 
 export function RowResizer({
   column,

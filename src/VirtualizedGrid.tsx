@@ -9,9 +9,9 @@ import {
 import { Animated, Platform, View, PanResponder } from "react-native";
 
 import { Cell } from "./Cell";
-import { VirtualizedGridProps } from "./VirtualGridTypes";
-import { CellObject, ColumnObject, RowObject } from "./VirtualGridUtils";
 import { VirtualizedGridContext } from "./VirtualizedGridContext";
+import { VirtualizedGridProps } from "./VirtualizedGridTypes";
+import { CellObject, ColumnObject, RowObject } from "./VirtualizedGridUtils";
 
 export function VirtualizedGrid({
   style,
@@ -283,12 +283,43 @@ export function VirtualizedGrid({
       let deltaX = event.deltaX;
       let deltaY = event.deltaY;
       let finalMaxColumnIndex = maxColumn.columnIndex;
-      let deltaX0 = maxColumn.x + maxColumn.width + x - containerWidth;
+      let finalMinColumnIndex = minColumn.columnIndex;
       let finalMaxRowIndex = maxRow.rowIndex;
-      let deltaY0 = maxRow.y + maxRow.height + y - containerHeight;
+      let finalMinRowIndex = minRow.rowIndex;
 
+      // 右移补头
+      if (deltaX < 0) {
+        // minColumn.x + x 修正maxColumn位置误差
+        // let deltaX0 = -containerWidth;
+        let deltaX0 = x + minColumn.x - containerWidth;
+
+        while (deltaX < deltaX0) {
+          if (finalMinColumnIndex === 0) {
+            break;
+          }
+          finalMinColumnIndex--;
+          if (
+            minColumn.columnIndex - finalMinColumnIndex >=
+            virtualColumns.current.length - 2
+          ) {
+            shouldSplitAction = true;
+            break;
+          }
+          const minColumnWidth = getColumnWidth({
+            columnIndex: finalMinColumnIndex,
+          });
+          deltaX0 += minColumnWidth;
+        }
+        deltaX = Math.max(deltaX0, deltaX);
+        if (shouldSplitAction) {
+          splitAction.deltaX = event.deltaX - deltaX;
+        }
+      }
       // 左移补尾
       if (deltaX > 0) {
+        // 修正位置误差: x + maxColumn.x + maxColumn.width
+        // let deltaX0 = containerWidth;
+        let deltaX0 = maxColumn.x + maxColumn.width + x - containerWidth;
         while (deltaX > deltaX0) {
           if (finalMaxColumnIndex === columnCount) {
             break;
@@ -311,7 +342,40 @@ export function VirtualizedGrid({
           splitAction.deltaX = event.deltaX - deltaX;
         }
       }
+
+      // 下移补头
+      if (deltaY < 0) {
+        // minRow.y !== -y，因为minRow有可能一半在屏幕外面，
+        // 所以这里要修正这个误差
+        let deltaY0 = y + minRow.y - containerHeight;
+
+        while (deltaY < deltaY0) {
+          if (finalMinRowIndex === 0) {
+            break;
+          }
+          finalMinRowIndex--;
+          if (
+            minRow.rowIndex - finalMinRowIndex >=
+            virtualRows.current.length - 2
+          ) {
+            shouldSplitAction = true;
+            break;
+          }
+          const minRowHeight = getRowHeight({
+            rowIndex: finalMinRowIndex,
+          });
+          deltaY0 += minRowHeight;
+        }
+        deltaY = Math.max(deltaY0, deltaY);
+        if (shouldSplitAction) {
+          splitAction.deltaY = event.deltaY - deltaY;
+        }
+      }
+
+      // 上移补尾
       if (deltaY > 0) {
+        let deltaY0 = maxRow.y + maxRow.height + y - containerHeight;
+
         while (deltaY > deltaY0) {
           if (finalMaxRowIndex === rowCount) {
             break;
@@ -538,7 +602,13 @@ export function VirtualizedGrid({
       // 继续未完成action
       if (shouldSplitAction) {
         if (__DEV__) {
-          console.log("[DEV] splitAction", splitAction);
+          console.log("[DEV] splitAction", {
+            ...splitAction,
+            prevDeltaY: deltaY,
+            prevDeltaX: deltaX,
+            containerWidth,
+            containerHeight,
+          });
         }
         requestAnimationFrame(() => {
           updateCoordinate(splitAction);

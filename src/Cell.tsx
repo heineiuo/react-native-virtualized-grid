@@ -1,8 +1,8 @@
 import { forwardRef, ReactNode, useImperativeHandle, useState } from "react";
 import { Animated } from "react-native";
 
-import { CellMethods } from "./VirtualGridTypes";
-import { ColumnObject, RowObject } from "./VirtualGridUtils";
+import { CellMethods } from "./VirtualizedGridTypes";
+import { ColumnObject, RowObject } from "./VirtualizedGridUtils";
 
 export const Cell = forwardRef<
   CellMethods,
