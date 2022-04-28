@@ -114,6 +114,9 @@ export function VirtualizedGrid({
        */
       let rowIndex = maxRow?.rowIndex ?? -1;
       while (virtualRowsTotalHeight < layout.height) {
+        if (rowIndex >= rowCount - 1) {
+          break;
+        }
         rowIndex++;
         const rowHeight = getRowHeight({ rowIndex });
         virtualRowsTotalHeight += rowHeight;
@@ -140,6 +143,9 @@ export function VirtualizedGrid({
       }
       let columnIndex = maxColumn?.columnIndex ?? -1;
       while (virtualColumnsTotalWidth < layout.width) {
+        if (columnIndex >= columnCount - 1) {
+          break;
+        }
         columnIndex++;
         const columnWidth = getColumnWidth({ columnIndex });
         virtualColumnsTotalWidth += columnWidth;
@@ -173,6 +179,9 @@ export function VirtualizedGrid({
        */
       let extraRows = freezedStartRows + 1;
       while (extraRows > 0) {
+        if (rowIndex >= rowCount - 1) {
+          break;
+        }
         rowIndex++;
         const rowHeight = getRowHeight({ rowIndex });
         const prevRow = virtualRows.current[virtualRows.current.length - 1];
@@ -188,6 +197,9 @@ export function VirtualizedGrid({
 
       let extraColumns = freezedStartColumns + 1;
       while (extraColumns > 0) {
+        if (columnIndex >= columnCount - 1) {
+          break;
+        }
         columnIndex++;
         const prevColumn =
           virtualColumns.current[virtualColumns.current.length - 1];
@@ -225,6 +237,8 @@ export function VirtualizedGrid({
       setLayoutCount((prev) => prev + 1);
     },
     [
+      rowCount,
+      columnCount,
       getColumnWidth,
       getRowHeight,
       getRange,
@@ -321,7 +335,7 @@ export function VirtualizedGrid({
         // let deltaX0 = containerWidth;
         let deltaX0 = maxColumn.x + maxColumn.width + x - containerWidth;
         while (deltaX > deltaX0) {
-          if (finalMaxColumnIndex === columnCount) {
+          if (finalMaxColumnIndex >= columnCount - 1) {
             break;
           }
           finalMaxColumnIndex++;
@@ -377,7 +391,7 @@ export function VirtualizedGrid({
         let deltaY0 = maxRow.y + maxRow.height + y - containerHeight;
 
         while (deltaY > deltaY0) {
-          if (finalMaxRowIndex === rowCount) {
+          if (finalMaxRowIndex >= rowCount - 1) {
             break;
           }
           finalMaxRowIndex++;
@@ -464,6 +478,11 @@ export function VirtualizedGrid({
              * 再更新maxColumnValue以供下一个column使用
              */
             const column = outsideColumns[i];
+            // 虽然超出屏幕但是已经到了底部，所以终止
+            if (maxColumn.columnIndex === columnCount - 1) {
+              break;
+            }
+
             column.xAnimated.setValue(maxColumn.x + maxColumn.width);
             column.columnIndex = maxColumn.columnIndex + 1;
             const columnWidth = getColumnWidth(column);
@@ -537,6 +556,10 @@ export function VirtualizedGrid({
         if (outsideRows.length > 0) {
           for (let i = 0; i < outsideRows.length; i++) {
             const row = outsideRows[i];
+            // 虽然超出屏幕但是已经到了底部，所以终止
+            if (maxRow.rowIndex === rowCount - 1) {
+              break;
+            }
             row.rowIndex = maxRow.rowIndex + 1;
             row.yAnimated.setValue(maxRow.y + maxRow.height);
             const rowHeight = getRowHeight(row);
