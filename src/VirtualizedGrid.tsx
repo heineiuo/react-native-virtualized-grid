@@ -478,6 +478,11 @@ export function VirtualizedGrid({
              * 再更新maxColumnValue以供下一个column使用
              */
             const column = outsideColumns[i];
+            // 虽然超出屏幕但是已经到了底部，所以终止
+            if (maxColumn.columnIndex === columnCount - 1) {
+              break;
+            }
+
             column.xAnimated.setValue(maxColumn.x + maxColumn.width);
             column.columnIndex = maxColumn.columnIndex + 1;
             const columnWidth = getColumnWidth(column);
@@ -551,6 +556,10 @@ export function VirtualizedGrid({
         if (outsideRows.length > 0) {
           for (let i = 0; i < outsideRows.length; i++) {
             const row = outsideRows[i];
+            // 虽然超出屏幕但是已经到了底部，所以终止
+            if (maxRow.rowIndex === rowCount - 1) {
+              break;
+            }
             row.rowIndex = maxRow.rowIndex + 1;
             row.yAnimated.setValue(maxRow.y + maxRow.height);
             const rowHeight = getRowHeight(row);
