@@ -43,4 +43,15 @@ export type VirtualizedGridProps = {
   }) => ReactNode;
   onChangeColumn?: (column: ColumnObject) => void;
   onChangeRow?: (row: RowObject) => void;
+  /**
+   * change row order event handler
+   */
+  onChangeRowOrder?: (options: { fromIndex: number; toIndex: number }) => void;
+  /**
+   * change column order event handler
+   */
+  onChangeColumnOrder?: (options: {
+    fromIndex: number;
+    toIndex: number;
+  }) => void;
 };

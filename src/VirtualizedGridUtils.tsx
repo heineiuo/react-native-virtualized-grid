@@ -81,12 +81,16 @@ export class ColumnObject {
     this.widthAnimated = new Animated.Value(width);
     this.columnIndex = columnIndex;
     this.freezed = freezed;
+    this.zIndexAnimated = new Animated.Value(freezed ? 1 : 0);
+    this.highlightOpacityAnimated = new Animated.Value(0);
   }
 
   columnIndex: number;
+  freezed: boolean;
   xAnimated: Animated.Value;
   widthAnimated: Animated.Value;
-  freezed: boolean;
+  zIndexAnimated: Animated.Value;
+  highlightOpacityAnimated: Animated.Value;
 
   get x(): number {
     return JSON.parse(JSON.stringify(this.xAnimated));
@@ -112,12 +116,16 @@ export class RowObject {
     this.heightAnimated = new Animated.Value(height);
     this.rowIndex = rowIndex;
     this.freezed = freezed;
+    this.zIndexAnimated = new Animated.Value(freezed ? 1 : 0);
+    this.highlightOpacityAnimated = new Animated.Value(0);
   }
 
   rowIndex: number;
   yAnimated: Animated.Value;
   heightAnimated: Animated.Value;
   freezed: boolean;
+  zIndexAnimated: Animated.Value;
+  highlightOpacityAnimated: Animated.Value;
 
   get y(): number {
     return JSON.parse(JSON.stringify(this.yAnimated));
@@ -154,3 +162,34 @@ export class CellObject {
     return this.row.height;
   }
 }
+
+export function forEachColumns(
+  columns: ColumnObject[],
+  options: {
+    all?: boolean;
+    afterIndex?: number;
+    beforeIndex?: number;
+  },
+  callback: (item: ColumnObject) => void
+) {
+  for (const item of columns) {
+    if (options.all) {
+      callback(item);
+    } else if (typeof options.afterIndex === "number") {
+      if (item.columnIndex > options.afterIndex) {
+        callback(item);
+      }
+    } else if (typeof options.beforeIndex === "number") {
+      if (item.columnIndex < options.beforeIndex) {
+        callback(item);
+      }
+    }
+  }
+}
+
+export const animationConfig = {
+  toValue: 1,
+  stiffness: 1000,
+  damping: 500,
+  useNativeDriver: true,
+};

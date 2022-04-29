@@ -1,5 +1,11 @@
 import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
-import { Platform, Text, useWindowDimensions, View } from "react-native";
+import {
+  Animated,
+  Platform,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 import { Header } from "./docs/Header";
 import {
@@ -8,6 +14,7 @@ import {
   ColumnObject,
   RowObject,
   RowResizer,
+  ColumnReorder,
 } from "./src/index";
 
 export default function App() {
@@ -21,6 +28,13 @@ export default function App() {
   const updateRow = useCallback((row: RowObject) => {
     rowHeightCache.current.set(`${row.rowIndex}`, row.height);
   }, []);
+
+  const onChangeColumnOrder = useCallback(
+    (options: { fromIndex: number; toIndex: number }) => {
+      console.log(options);
+    },
+    []
+  );
 
   useLayoutEffect(() => {
     if (Platform.OS === "web") {
@@ -64,6 +78,7 @@ export default function App() {
           ];
         }}
         onChangeColumn={updateColumn}
+        onChangeColumnOrder={onChangeColumnOrder}
         onChangeRow={updateRow}
         renderCell={(info) => {
           return (
@@ -80,18 +95,51 @@ export default function App() {
                 borderBottomWidth: info.rowIndex === 0 ? 1 : 0,
               }}
             >
-              {info.columnIndex === 0 && info.rowIndex === 0 ? null : (
+              {info.columnIndex === 0 && info.rowIndex === 0 && null}
+              {info.rowIndex === 0 && info.columnIndex > 0 && (
+                <>
+                  <ColumnReorder row={info.row} column={info.column}>
+                    <>
+                      <Text>c: {info.columnIndex}</Text>
+                      <Text>r: {info.rowIndex}</Text>
+                    </>
+                  </ColumnReorder>
+                  <ColumnResizer row={info.row} column={info.column} />
+                </>
+              )}
+              {info.columnIndex === 0 && info.rowIndex > 0 && (
+                <>
+                  <>
+                    <Text>c: {info.columnIndex}</Text>
+                    <Text>r: {info.rowIndex}</Text>
+                  </>
+                  <RowResizer row={info.row} column={info.column} />
+                </>
+              )}
+              {info.columnIndex > 0 && info.rowIndex > 0 && (
                 <>
                   <Text>c: {info.columnIndex}</Text>
                   <Text>r: {info.rowIndex}</Text>
                 </>
               )}
-              {info.rowIndex === 0 && (
-                <ColumnResizer row={info.row} column={info.column} />
-              )}
-              {info.columnIndex === 0 && (
-                <RowResizer row={info.row} column={info.column} />
-              )}
+              <Animated.View
+                style={[
+                  {
+                    position: "absolute",
+                    left: 0,
+                    top: -1,
+                    bottom: -1,
+                    width: 2,
+                    backgroundColor: "blue",
+                    opacity: info.column.highlightOpacityAnimated,
+                  },
+                  Platform.select({
+                    web: {
+                      pointerEvents: "none",
+                    } as unknown as any,
+                  }),
+                ]}
+              />
             </View>
           );
         }}
