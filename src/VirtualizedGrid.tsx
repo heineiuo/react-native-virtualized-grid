@@ -6,7 +6,13 @@ import {
   useRef,
   useState,
 } from "react";
-import { Animated, Platform, View, PanResponder } from "react-native";
+import {
+  Animated,
+  Platform,
+  View,
+  PanResponder,
+  LayoutChangeEvent,
+} from "react-native";
 
 import { Cell } from "./Cell";
 import { VirtualizedGridContext } from "./VirtualizedGridContext";
@@ -96,26 +102,44 @@ export function VirtualizedGrid({
    */
   const onContainerLayout = useCallback(
     (event) => {
-      const { layout } = event.nativeEvent;
-      containerSize.current.setValue({ x: layout.width, y: layout.height });
+      const { x: currentWidth, y: currentHeight } = JSON.parse(
+        JSON.stringify(containerSize.current)
+      );
+      const { width, height } = event.nativeEvent.layout;
+
+      containerSize.current.setValue({ x: width, y: height });
+
+      const { minRow, minColumn, maxRow, maxColumn } = getRange();
 
       let virtualColumnsTotalWidth = 0;
       let virtualRowsTotalHeight = 0;
 
-      for (const column of virtualColumns.current) {
-        virtualColumnsTotalWidth += column.width;
-      }
-      for (const row of virtualRows.current) {
-        virtualRowsTotalHeight += row.height;
-      }
+      /**
+       * ===0的时候minRow,minColumn,maxRow,maxColumn是null，不能不处理
+       */
+      if (virtualColumns.current.length > 0 && virtualRows.current.length > 0) {
+        // container变小的时候不做任何处理
+        if (currentWidth >= width && currentHeight >= height) {
+          return;
+        }
 
-      const { maxRow, maxColumn } = getRange();
+        virtualColumnsTotalWidth = maxColumn.x - minColumn.x + maxColumn.width;
+        virtualRowsTotalHeight = maxRow.y - minRow.y + maxRow.height;
+
+        // container小于虚拟列行的大小时不做处理
+        if (
+          virtualColumnsTotalWidth >= width &&
+          virtualRowsTotalHeight >= height
+        ) {
+          return;
+        }
+      }
 
       /**
        * 填满virtualRows和virtualColumns
        */
       let rowIndex = maxRow?.rowIndex ?? -1;
-      while (virtualRowsTotalHeight < layout.height) {
+      while (virtualRowsTotalHeight < height) {
         if (rowIndex >= rowCount - 1) {
           break;
         }
@@ -144,7 +168,7 @@ export function VirtualizedGrid({
         }
       }
       let columnIndex = maxColumn?.columnIndex ?? -1;
-      while (virtualColumnsTotalWidth < layout.width) {
+      while (virtualColumnsTotalWidth < width) {
         if (columnIndex >= columnCount - 1) {
           break;
         }
@@ -249,6 +273,19 @@ export function VirtualizedGrid({
     ]
   );
 
+  const onContainerLayoutDebounced = useMemo(() => {
+    let timer = null;
+    return (event: LayoutChangeEvent) => {
+      const { layout } = event.nativeEvent;
+      if (timer) {
+        clearTimeout(timer);
+      }
+      timer = setTimeout(() => {
+        onContainerLayout({ nativeEvent: { layout } });
+      }, 500);
+    };
+  }, [onContainerLayout]);
+
   const updateCoordinate = useCallback(
     (event: { deltaX: number; deltaY: number }) => {
       const { x, y } = JSON.parse(JSON.stringify(coordinate.current));
@@ -273,6 +310,10 @@ export function VirtualizedGrid({
        * row同理
        */
       let { minColumn, maxColumn, minRow, maxRow } = getRange();
+
+      if (!(minColumn && maxColumn && minRow && maxRow)) {
+        return;
+      }
 
       /**
        * (2/5)
@@ -713,7 +754,9 @@ export function VirtualizedGrid({
       <View
         ref={view}
         style={[style, { overflow: "hidden" }]}
-        onLayout={onContainerLayout}
+        onLayout={
+          layoutCount === 0 ? onContainerLayout : onContainerLayoutDebounced
+        }
         {...panResponder.panHandlers}
       >
         {showColumnLine && (
