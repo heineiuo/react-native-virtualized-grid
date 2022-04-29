@@ -11,15 +11,7 @@ export function ColumnResizer({
   column: ColumnObject;
   row: RowObject;
 }) {
-  const {
-    virtualColumns,
-    virtualRows,
-    virtualCells,
-    updateCoordinate,
-    coordinate,
-    containerSize,
-    onChangeColumn,
-  } = useGrid();
+  const { virtualColumns, onChangeColumn } = useGrid();
 
   const panResponder = useMemo(() => {
     let rightColumns = [];

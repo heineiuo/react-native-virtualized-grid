@@ -26,6 +26,8 @@ export function VirtualizedGrid({
   showRowLine = false,
   freezedColumns = {},
   freezedRows = {},
+  onChangeColumnOrder = () => undefined,
+  onChangeRowOrder = () => undefined,
 }: VirtualizedGridProps) {
   const view = useRef<View>(null);
   const [layoutCount, setLayoutCount] = useState(0);
@@ -426,6 +428,10 @@ export function VirtualizedGrid({
         deltaY = y;
       }
 
+      if (deltaX === 0 && deltaY === 0) {
+        return;
+      }
+
       const nextX = x - deltaX;
       const nextY = y - deltaY;
 
@@ -700,6 +706,8 @@ export function VirtualizedGrid({
         coordinate,
         containerSize,
         updateCoordinate,
+        onChangeColumnOrder,
+        onChangeRowOrder,
       }}
     >
       <View

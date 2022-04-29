@@ -10,8 +10,13 @@ export type VirtualizedGridState = {
   coordinate: MutableRefObject<Animated.ValueXY>;
   containerSize: MutableRefObject<Animated.ValueXY>;
   updateCoordinate: (event: { deltaX: number; deltaY: number }) => void;
-  onChangeColumn: (column: ColumnObject) => void;
   onChangeRow: (row: RowObject) => void;
+  onChangeRowOrder: (options: { fromIndex: number; toIndex: number }) => void;
+  onChangeColumn: (column: ColumnObject) => void;
+  onChangeColumnOrder: (options: {
+    fromIndex: number;
+    toIndex: number;
+  }) => void;
 };
 
 export const VirtualizedGridContext = createContext({} as VirtualizedGridState);

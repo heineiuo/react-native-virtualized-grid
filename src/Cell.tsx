@@ -40,7 +40,7 @@ export const Cell = forwardRef<
       style={{
         position: "absolute",
         width: column.widthAnimated,
-        zIndex: (column.freezed ? 1 : 0) + (row.freezed ? 1 : 0),
+        zIndex: Animated.add(column.zIndexAnimated, row.zIndexAnimated),
         height: row.heightAnimated,
         transform: [
           {
