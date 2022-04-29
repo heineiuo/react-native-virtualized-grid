@@ -754,7 +754,9 @@ export function VirtualizedGrid({
       <View
         ref={view}
         style={[style, { overflow: "hidden" }]}
-        onLayout={onContainerLayoutDebounced}
+        onLayout={
+          layoutCount === 0 ? onContainerLayout : onContainerLayoutDebounced
+        }
         {...panResponder.panHandlers}
       >
         {showColumnLine && (
