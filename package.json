@@ -1,6 +1,6 @@
 {
   "name": "react-native-virtualized-grid",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "build:commonjs": "babel src --out-dir lib/commonjs --extensions '.ts,.tsx' --source-maps",
