@@ -1,5 +1,6 @@
 import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   Platform,
   Text,
@@ -7,6 +8,7 @@ import {
   View,
 } from "react-native";
 
+import { AutoHideActivityIndicator } from "./docs/AutoHideActivityIndicator";
 import { Header } from "./docs/Header";
 import {
   VirtualizedGrid,
@@ -118,6 +120,9 @@ export default function App() {
               )}
               {info.columnIndex > 0 && info.rowIndex > 0 && (
                 <>
+                  {/* <AutoHideActivityIndicator
+                    key={`${info.columnIndex}/${info.rowIndex}`}
+                  /> */}
                   <Text>c: {info.columnIndex}</Text>
                   <Text>r: {info.rowIndex}</Text>
                 </>
