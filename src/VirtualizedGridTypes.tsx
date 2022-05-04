@@ -54,4 +54,14 @@ export type VirtualizedGridProps = {
     fromIndex: number;
     toIndex: number;
   }) => void;
+
+  /**
+   * visible area changed
+   */
+  onChangeVisibleArea?: (event: {
+    minRow: RowObject;
+    maxRow: RowObject;
+    minColumn: ColumnObject;
+    maxColumn: ColumnObject;
+  }) => void;
 };
