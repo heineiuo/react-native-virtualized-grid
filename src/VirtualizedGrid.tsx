@@ -34,6 +34,7 @@ export function VirtualizedGrid({
   freezedRows = {},
   onChangeColumnOrder = () => undefined,
   onChangeRowOrder = () => undefined,
+  onChangeVisibleArea = () => undefined,
 }: VirtualizedGridProps) {
   const view = useRef<View>(null);
   const [layoutCount, setLayoutCount] = useState(0);
@@ -727,6 +728,8 @@ export function VirtualizedGrid({
           rowIndexSet.add(row.rowIndex);
         }
       }
+
+      onChangeVisibleArea({ minRow, maxRow, minColumn, maxColumn });
 
       if (!shouldSplitAction) {
         for (let i = 0; i < virtualCells.current.length; i++) {

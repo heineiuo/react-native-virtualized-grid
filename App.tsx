@@ -82,6 +82,9 @@ export default function App() {
         onChangeColumn={updateColumn}
         onChangeColumnOrder={onChangeColumnOrder}
         onChangeRow={updateRow}
+        onChangeVisibleArea={(event) => {
+          console.log("onChangeVisibleArea", event);
+        }}
         renderCell={(info) => {
           return (
             <View
