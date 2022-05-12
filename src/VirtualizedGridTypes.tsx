@@ -7,6 +7,12 @@ export type CellMethods = {
   update: (info: { rowIndex: number; columnIndex: number }) => ReactNode;
 };
 
+export type CellProps = {
+  column: ColumnObject;
+  row: RowObject;
+  renderCell: (info: { column: ColumnObject; row: RowObject }) => ReactNode;
+};
+
 export type VirtualizedGridProps = {
   style?: StyleProp<ViewStyle>;
   freezedColumns?: {
@@ -14,20 +20,12 @@ export type VirtualizedGridProps = {
      * how many columns should be freezed to left
      */
     start?: number;
-    /**
-     * how many columns should be freezed to right
-     */
-    end?: number;
   };
   freezedRows?: {
     /**
      * how many rows should be freezed to top
      */
     start?: number;
-    /**
-     * how many rows should be freezed to bottom
-     */
-    end?: number;
   };
   columnCount: number;
   rowCount: number;

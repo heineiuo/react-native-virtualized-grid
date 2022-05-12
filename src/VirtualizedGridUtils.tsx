@@ -5,64 +5,63 @@ import { CellMethods } from "./VirtualizedGridTypes";
 
 export class CoordinateObject {
   constructor() {
+    this._x = 0;
+    this._y = 0;
     this.xAnimated = new Animated.Value(0);
     this.yAnimated = new Animated.Value(0);
-    this.containerWidthAnimated = new Animated.Value(0);
-    this.containerHeightAnimated = new Animated.Value(0);
-    this.contentWidthAnimated = new Animated.Value(0);
-    this.contentHeightAnimated = new Animated.Value(0);
-    this.minXAnimated = Animated.subtract(
-      this.containerWidthAnimated,
-      this.contentWidthAnimated
-    );
-    this.minYAnimated = Animated.subtract(
-      this.containerWidthAnimated,
-      this.contentWidthAnimated
-    );
+    this.rowIndex = 0;
+    this.columnIndex = 0;
+    this.left = 0;
+    this.top = 0;
   }
 
+  /**
+   * 左上角point的x方向的位移
+   */
+  _x: number;
+  set x(val) {
+    this._x = val;
+    this.xAnimated.setValue(val);
+  }
+  get x() {
+    return this._x;
+  }
+  /**
+   * 左上角point的y方向的位移
+   */
+  _y: number;
+  set y(val) {
+    this._y = val;
+    this.yAnimated.setValue(val);
+  }
+  get y() {
+    return this._y;
+  }
+  /**
+  /**
+   * 左上角point的x方向的位移的动画值
+   */
   xAnimated: Animated.Value;
+  /**
+   * 左上角point的y方向的位移的动画值
+   */
   yAnimated: Animated.Value;
-  minXAnimated: Animated.AnimatedSubtraction;
-  minYAnimated: Animated.AnimatedSubtraction;
-  containerWidthAnimated: Animated.Value;
-  containerHeightAnimated: Animated.Value;
-  contentWidthAnimated: Animated.Value;
-  contentHeightAnimated: Animated.Value;
-
-  move = (event: WheelEvent) => {
-    const nextX = Math.min(0, Math.max(this.minX, this.x - event.deltaX));
-    const nextY = Math.min(0, Math.max(this.minY, this.y - event.deltaY));
-
-    this.xAnimated.setValue(nextX);
-    this.yAnimated.setValue(nextY);
-  };
-
-  get minX(): number {
-    return JSON.parse(JSON.stringify(this.minXAnimated));
-  }
-  get minY(): number {
-    return JSON.parse(JSON.stringify(this.minYAnimated));
-  }
-
-  get x(): number {
-    return JSON.parse(JSON.stringify(this.xAnimated));
-  }
-  get y(): number {
-    return JSON.parse(JSON.stringify(this.yAnimated));
-  }
-  get contentWidth(): number {
-    return JSON.parse(JSON.stringify(this.contentWidthAnimated));
-  }
-  get contentHeight(): number {
-    return JSON.parse(JSON.stringify(this.contentHeightAnimated));
-  }
-  get containerWidth(): number {
-    return JSON.parse(JSON.stringify(this.containerWidthAnimated));
-  }
-  get containerHeight(): number {
-    return JSON.parse(JSON.stringify(this.containerHeightAnimated));
-  }
+  /**
+   * 左上角cell的row（非freezed）
+   */
+  rowIndex: number;
+  /**
+   * 左上角cell的column（非freezed）
+   */
+  columnIndex: number;
+  /**
+   * 左上角cell相对于container的左上角point的x方向的位移
+   */
+  left: number;
+  /**
+   * 左上角cell相对于container的左上角point的的y方向的位移
+   */
+  top: number;
 }
 
 export class ColumnObject {

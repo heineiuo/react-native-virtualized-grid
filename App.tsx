@@ -69,15 +69,16 @@ export default function App() {
           if (columnWidthCache.current.has(`${info.columnIndex}`)) {
             return columnWidthCache.current.get(`${info.columnIndex}`);
           }
+          const random = Math.round(Math.random() * 100);
           return [50, 140, 200, 120][info.columnIndex % 4];
         }}
         getRowHeight={(info: { rowIndex: number }) => {
           if (rowHeightCache.current.has(`${info.rowIndex}`)) {
             return rowHeightCache.current.get(`${info.rowIndex}`);
           }
-          return [40, 50, 60, 90, 40, 45, 40, 50, 55, 50, 60][
-            info.rowIndex % 10
-          ];
+          const random = Math.round(Math.random() * 100);
+
+          return [40, 50, 60, 90, 40, 45, 40, 50, 55, 50][info.rowIndex % 10];
         }}
         onChangeColumn={updateColumn}
         onChangeColumnOrder={onChangeColumnOrder}
@@ -85,49 +86,49 @@ export default function App() {
         onChangeVisibleArea={(event) => {
           console.log("onChangeVisibleArea", event);
         }}
-        renderCell={(info) => {
+        renderCell={({ column, row }) => {
           return (
             <View
               style={{
                 flex: 1,
                 backgroundColor:
-                  info.rowIndex % 2 === 1 ? "rgb(246, 248, 250)" : "#fff",
+                  row.rowIndex % 2 === 1 ? "rgb(246, 248, 250)" : "#fff",
                 borderTopWidth: 1,
                 borderLeftWidth: 1,
                 borderColor: "rgb(216, 222, 228)",
                 padding: 4,
-                borderRightWidth: info.columnIndex === 0 ? 1 : 0,
-                borderBottomWidth: info.rowIndex === 0 ? 1 : 0,
+                borderRightWidth: column.columnIndex === 0 ? 1 : 0,
+                borderBottomWidth: row.rowIndex === 0 ? 1 : 0,
               }}
             >
-              {info.columnIndex === 0 && info.rowIndex === 0 && null}
-              {info.rowIndex === 0 && info.columnIndex > 0 && (
+              {column.columnIndex === 0 && row.rowIndex === 0 && null}
+              {row.rowIndex === 0 && column.columnIndex > 0 && (
                 <>
-                  <ColumnReorder row={info.row} column={info.column}>
+                  <ColumnReorder row={row} column={column}>
                     <>
-                      <Text>c: {info.columnIndex}</Text>
-                      <Text>r: {info.rowIndex}</Text>
+                      <Text>c: {column.columnIndex}</Text>
+                      <Text>r: {row.rowIndex}</Text>
                     </>
                   </ColumnReorder>
-                  <ColumnResizer row={info.row} column={info.column} />
+                  <ColumnResizer row={row} column={column} />
                 </>
               )}
-              {info.columnIndex === 0 && info.rowIndex > 0 && (
+              {column.columnIndex === 0 && row.rowIndex > 0 && (
                 <>
                   <>
-                    <Text>c: {info.columnIndex}</Text>
-                    <Text>r: {info.rowIndex}</Text>
+                    <Text>c: {column.columnIndex}</Text>
+                    <Text>r: {row.rowIndex}</Text>
                   </>
-                  <RowResizer row={info.row} column={info.column} />
+                  <RowResizer row={row} column={column} />
                 </>
               )}
-              {info.columnIndex > 0 && info.rowIndex > 0 && (
+              {column.columnIndex > 0 && row.rowIndex > 0 && (
                 <>
                   {/* <AutoHideActivityIndicator
-                    key={`${info.columnIndex}/${info.rowIndex}`}
+                    key={`${columnIndex}/${rowIndex}`}
                   /> */}
-                  <Text>c: {info.columnIndex}</Text>
-                  <Text>r: {info.rowIndex}</Text>
+                  <Text>c: {column.columnIndex}</Text>
+                  <Text>r: {row.rowIndex}</Text>
                 </>
               )}
               <Animated.View
@@ -139,7 +140,7 @@ export default function App() {
                     bottom: -1,
                     width: 2,
                     backgroundColor: "blue",
-                    opacity: info.column.highlightOpacityAnimated,
+                    opacity: column.highlightOpacityAnimated,
                   },
                   Platform.select({
                     web: {

@@ -5,10 +5,14 @@ import { CellObject, ColumnObject, RowObject } from "./VirtualizedGridUtils";
 
 export type VirtualizedGridState = {
   virtualColumns: MutableRefObject<ColumnObject[]>;
-  virtualCells: MutableRefObject<CellObject[]>;
   virtualRows: MutableRefObject<RowObject[]>;
-  coordinate: MutableRefObject<Animated.ValueXY>;
-  containerSize: MutableRefObject<Animated.ValueXY>;
+  coordinate: MutableRefObject<{
+    x: number;
+    y: number;
+    xAnimated: Animated.Value;
+    yAnimated: Animated.Value;
+  }>;
+  containerSize: MutableRefObject<{ width: number; height: number }>;
   updateCoordinate: (event: { deltaX: number; deltaY: number }) => void;
   onChangeRow: (row: RowObject) => void;
   onChangeRowOrder: (options: { fromIndex: number; toIndex: number }) => void;

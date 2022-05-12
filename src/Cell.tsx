@@ -1,40 +1,8 @@
-import { forwardRef, ReactNode, useImperativeHandle, useState } from "react";
 import { Animated } from "react-native";
 
-import { CellMethods } from "./VirtualizedGridTypes";
-import { ColumnObject, RowObject } from "./VirtualizedGridUtils";
+import { CellProps } from "./VirtualizedGridTypes";
 
-export const Cell = forwardRef<
-  CellMethods,
-  {
-    coordinate: Animated.AnimatedValueXY;
-    column: ColumnObject;
-    row: RowObject;
-    renderCell: (info: {
-      columnIndex: number;
-      rowIndex: number;
-      column: ColumnObject;
-      row: RowObject;
-    }) => ReactNode;
-  }
->(({ renderCell, column, row, coordinate }, ref) => {
-  const [data, setData] = useState({
-    rowIndex: row.rowIndex,
-    columnIndex: column.columnIndex,
-  });
-
-  useImperativeHandle(
-    ref,
-    () => {
-      return {
-        update: (data) => {
-          setData(data);
-        },
-      } as CellMethods;
-    },
-    []
-  );
-
+export function Cell({ renderCell, column, row }: CellProps) {
   return (
     <Animated.View
       style={{
@@ -44,19 +12,15 @@ export const Cell = forwardRef<
         height: row.heightAnimated,
         transform: [
           {
-            translateX: column.freezed
-              ? column.xAnimated
-              : Animated.add(column.xAnimated, coordinate.x),
+            translateX: column.xAnimated,
           },
           {
-            translateY: row.freezed
-              ? row.yAnimated
-              : Animated.add(row.yAnimated, coordinate.y),
+            translateY: row.yAnimated,
           },
         ],
       }}
     >
-      {renderCell({ ...data, column, row })}
+      {renderCell({ column, row })}
     </Animated.View>
   );
-});
+}

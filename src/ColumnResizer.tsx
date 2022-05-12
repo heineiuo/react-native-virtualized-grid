@@ -95,8 +95,7 @@ export function ColumnResizer({
               style={[
                 {
                   height: row.heightAnimated,
-                  width: 1,
-                  backgroundColor: "#ccc",
+                  width: 0,
                 },
                 hovered && {
                   width: 5,
