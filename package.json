@@ -23,6 +23,7 @@
     "src",
     "lib"
   ],
+  "homepage": "https://heineiuo.github.io/react-native-virtualized-grid",
   "description": "A Table component for both react-native and react-native-web.",
   "keywords": [
     "react-native",
