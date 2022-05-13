@@ -491,6 +491,8 @@ export function VirtualizedGrid({
 
     const timeConstant = 325; // ms
 
+    const trackMs = 20;
+
     function init() {
       finalX = 0;
       finalY = 0;
@@ -500,7 +502,7 @@ export function VirtualizedGrid({
       vy = 0;
       timestamp = Date.now();
       clearInterval(ticker);
-      ticker = setInterval(track, 100);
+      ticker = setInterval(track, trackMs);
     }
 
     /**
@@ -516,8 +518,8 @@ export function VirtualizedGrid({
       const now = Date.now();
       const elapsed = now - timestamp + 1;
       timestamp = now;
-      const velocityX = (1000 * totalX) / elapsed;
-      const velocityY = (1000 * totalY) / elapsed;
+      const velocityX = (10 * trackMs * totalX) / elapsed;
+      const velocityY = (10 * trackMs * totalY) / elapsed;
       vx = velocityX * 0.8 + vx * 0.2;
       vy = velocityY * 0.8 + vy * 0.2;
 
