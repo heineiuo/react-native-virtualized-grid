@@ -48,6 +48,7 @@ export default function App() {
       <Header />
 
       <VirtualizedGrid
+        debug={__DEV__}
         columnCount={Number.MAX_SAFE_INTEGER}
         rowCount={Number.MAX_SAFE_INTEGER}
         freezedColumns={{ start: 1 }}
@@ -84,7 +85,7 @@ export default function App() {
         onChangeColumnOrder={onChangeColumnOrder}
         onChangeRow={updateRow}
         onChangeVisibleArea={(event) => {
-          console.log("onChangeVisibleArea", event);
+          // console.log("onChangeVisibleArea", event);
         }}
         renderCell={({ column, row }) => {
           return (

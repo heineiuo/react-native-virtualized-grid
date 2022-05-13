@@ -64,6 +64,66 @@ export class CoordinateObject {
   top: number;
 }
 
+export class ContentObject {
+  constructor() {
+    this._offsetX = 0;
+    this._offsetY = 0;
+    this.offsetXAnimated = new Animated.Value(0);
+    this.offsetYAnimated = new Animated.Value(0);
+
+    this._width = 0;
+    this._height = 0;
+    this.widthAnimated = new Animated.Value(0);
+    this.heightAnimated = new Animated.Value(0);
+  }
+
+  _offsetX: number;
+  _offsetY: number;
+  offsetXAnimated: Animated.Value;
+  offsetYAnimated: Animated.Value;
+
+  _width: number;
+  _height: number;
+  widthAnimated: Animated.Value;
+  heightAnimated: Animated.Value;
+
+  set offsetX(val) {
+    this._offsetX = 0;
+    this.offsetXAnimated.setValue(val);
+  }
+
+  get offsetX() {
+    return this._offsetX;
+  }
+
+  set offsetY(val) {
+    this._offsetY = 0;
+    this.offsetYAnimated.setValue(val);
+  }
+
+  get offsetY() {
+    return this._offsetY;
+  }
+
+  set width(val) {
+    this._width = 0;
+    this.widthAnimated.setValue(val);
+  }
+
+  get width() {
+    return this._width;
+  }
+
+  set height(val) {
+    this._height = 0;
+    this.heightAnimated.setValue(val);
+  }
+
+  get height() {
+    return this._height;
+  }
+}
+
 export class ColumnObject {
   constructor({
     x,
@@ -82,7 +142,6 @@ export class ColumnObject {
     this.freezed = freezed;
     this.zIndexAnimated = new Animated.Value(freezed ? 1 : 0);
     this.highlightOpacityAnimated = new Animated.Value(0);
-    this.recycled = false;
   }
 
   columnIndex: number;
@@ -91,10 +150,6 @@ export class ColumnObject {
   widthAnimated: Animated.Value;
   zIndexAnimated: Animated.Value;
   highlightOpacityAnimated: Animated.Value;
-  /**
-   * 是否已经被回收，已经被回收的不显示
-   */
-  recycled: boolean;
 
   get x(): number {
     return JSON.parse(JSON.stringify(this.xAnimated));
@@ -122,7 +177,6 @@ export class RowObject {
     this.freezed = freezed;
     this.zIndexAnimated = new Animated.Value(freezed ? 1 : 0);
     this.highlightOpacityAnimated = new Animated.Value(0);
-    this.recycled = false;
   }
 
   rowIndex: number;
@@ -131,10 +185,6 @@ export class RowObject {
   freezed: boolean;
   zIndexAnimated: Animated.Value;
   highlightOpacityAnimated: Animated.Value;
-  /**
-   * 是否已经被回收，已经被回收的不显示
-   */
-  recycled: boolean;
 
   get y(): number {
     return JSON.parse(JSON.stringify(this.yAnimated));

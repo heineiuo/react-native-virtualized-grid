@@ -14,6 +14,7 @@ export type CellProps = {
 };
 
 export type VirtualizedGridProps = {
+  debug?: boolean;
   style?: StyleProp<ViewStyle>;
   freezedColumns?: {
     /**
