@@ -205,8 +205,8 @@ export function VirtualizedGrid({
     const columnFreezed = [];
     const rowFreezed = [];
 
-    for (const column of columns) {
-      for (const row of rows) {
+    for (const row of rows) {
+      for (const column of columns) {
         const cell = (
           <Cell
             key={`${column.columnIndex}/${row.rowIndex}`}
@@ -423,7 +423,7 @@ export function VirtualizedGrid({
         });
         overlayX = 0;
         overlayY = 0;
-      }, 16);
+      }, 0);
     };
   }, [updateCoordinate]);
 
