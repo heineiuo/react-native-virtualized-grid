@@ -37,6 +37,7 @@
   "bugs": {
     "url": "https://github.com/heineiuo/react-native-virtualized-grid/issues"
   },
+  "homepage": "https://heineiuo.github.io/react-native-virtualized-grid",
   "devDependencies": {
     "@babel/cli": "^7.17.6",
     "@babel/core": "^7.12.9",
