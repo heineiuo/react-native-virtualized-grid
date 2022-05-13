@@ -25,6 +25,7 @@ import {
 } from "./VirtualizedGridUtils";
 
 const useScrollView = false;
+const onWheelThrottled = true;
 
 export function VirtualizedGrid({
   debug = false,
@@ -403,16 +404,28 @@ export function VirtualizedGrid({
     [update, debug, getColumnWidth, getRowHeight]
   );
 
-  const onWheel = useCallback(
-    (event) => {
+  const onWheel = useMemo(() => {
+    let timer = null;
+    let overlayX = 0;
+    let overlayY = 0;
+    return (event) => {
+      if (!onWheelThrottled) {
+        return updateCoordinate(event);
+      }
+      clearTimeout(timer);
       const { deltaX, deltaY } = event;
-      updateCoordinate({
-        deltaX,
-        deltaY,
-      });
-    },
-    [updateCoordinate]
-  );
+      overlayX += deltaX;
+      overlayY += deltaY;
+      timer = setTimeout(() => {
+        updateCoordinate({
+          deltaX: overlayX,
+          deltaY: overlayY,
+        });
+        overlayX = 0;
+        overlayY = 0;
+      }, 16);
+    };
+  }, [updateCoordinate]);
 
   const onScroll = useCallback(
     (event) => {
