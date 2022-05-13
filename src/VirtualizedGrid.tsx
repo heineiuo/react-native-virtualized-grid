@@ -281,7 +281,6 @@ export function VirtualizedGrid({
    */
   const updateCoordinate = useCallback(
     (event: { deltaX: number; deltaY: number }) => {
-      console.log(event);
       if (debug) {
         console.time("updateCoordinate");
       }
