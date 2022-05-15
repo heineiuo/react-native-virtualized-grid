@@ -63,4 +63,9 @@ export type VirtualizedGridProps = {
     minColumn: ColumnObject;
     maxColumn: ColumnObject;
   }) => void;
+
+  /**
+   * @experimental use scrollview, show scrollbar
+   */
+  useScrollView?: boolean;
 };

@@ -1,11 +1,4 @@
-import {
-  cloneElement,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Platform,
@@ -24,7 +17,6 @@ import {
   RowObject,
 } from "./VirtualizedGridUtils";
 
-const useScrollView = false;
 const onWheelThrottled = true;
 
 export function VirtualizedGrid({
@@ -42,6 +34,7 @@ export function VirtualizedGrid({
   onChangeColumnOrder = () => undefined,
   onChangeRowOrder = () => undefined,
   onChangeVisibleArea = () => undefined,
+  useScrollView = false,
 }: VirtualizedGridProps) {
   const view = useRef<View>(null);
   const scrollView = useRef<ScrollView>(null);
@@ -53,13 +46,20 @@ export function VirtualizedGrid({
   const virtualRows = useRef([]);
 
   const [groups, setGroups] = useState<
-    {
-      key: string;
-      children: any[];
-      x?: boolean;
-      y?: boolean;
-    }[]
-  >([]);
+    Record<
+      "notFreezed" | "columnFreezed" | "rowFreezed" | "allFreezed",
+      {
+        children?: any[];
+        x?: boolean;
+        y?: boolean;
+      }
+    >
+  >({
+    notFreezed: {},
+    columnFreezed: {},
+    rowFreezed: {},
+    allFreezed: {},
+  });
 
   /**
    * 左上角的坐标
@@ -240,12 +240,12 @@ export function VirtualizedGrid({
 
     onChangeVisibleArea({ minRow, minColumn, maxRow, maxColumn });
 
-    setGroups([
-      { key: "notFreezed", children: notFreezed, x: true, y: true },
-      { key: "columnFreezed", children: columnFreezed, y: true },
-      { key: "rowFreezed", children: rowFreezed, x: true },
-      { key: "allFreezed", children: allFreezed },
-    ]);
+    setGroups({
+      notFreezed: { children: notFreezed, x: true, y: true },
+      columnFreezed: { children: columnFreezed, y: true },
+      rowFreezed: { children: rowFreezed, x: true },
+      allFreezed: { children: allFreezed },
+    });
     if (debug) {
       console.timeEnd("setCells");
     }
@@ -430,22 +430,15 @@ export function VirtualizedGrid({
   const onScroll = useCallback(
     (event) => {
       const { x, y } = event.nativeEvent.contentOffset;
-      const { offsetX, offsetY } = content.current;
-
-      const deltaX = x - offsetX;
-      const deltaY = y - offsetY;
-      content.current.offsetX = x;
-      content.current.offsetY = y;
-      updateCoordinate({
-        deltaX,
-        deltaY,
-      });
+      coordinate.current.y = -y;
+      coordinate.current.x = -x;
+      setTimeout(update, 0);
     },
-    [updateCoordinate]
+    [update]
   );
 
   useEffect(() => {
-    if (Platform.OS === "web") {
+    if (!useScrollView && Platform.OS === "web") {
       const el = view.current as any;
       if (el) {
         el.addEventListener("wheel", onWheel);
@@ -454,7 +447,7 @@ export function VirtualizedGrid({
         };
       }
     }
-  }, [onWheel]);
+  }, [useScrollView, onWheel]);
 
   /**
    * pan responder for touch screen device
@@ -582,42 +575,6 @@ export function VirtualizedGrid({
     });
   }, [updateCoordinate]);
 
-  const container = useMemo(() => {
-    if (Platform.OS === "web") {
-      if (useScrollView) {
-        return (
-          <ScrollView
-            ref={scrollView}
-            style={[
-              {
-                overflow: "scroll",
-              },
-              style,
-            ]}
-            onLayout={onContainerLayout}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-            {...panResponder.panHandlers}
-          />
-        );
-      } else {
-        return (
-          <View
-            ref={view}
-            style={[
-              {
-                overflow: "hidden",
-              },
-              style,
-            ]}
-            onLayout={onContainerLayout}
-            {...panResponder.panHandlers}
-          />
-        );
-      }
-    }
-  }, [onContainerLayout, onScroll, panResponder, style]);
-
   return (
     <VirtualizedGridContext.Provider
       value={{
@@ -632,38 +589,88 @@ export function VirtualizedGrid({
         onChangeRowOrder,
       }}
     >
-      {cloneElement(
-        container,
-        null,
-        groups.map(({ key, children, x = false, y = false }) => {
-          return (
-            <Animated.View
-              key={key}
-              style={[
-                {
-                  position: "absolute",
-                  transform: [
-                    {
-                      translateX: x ? coordinate.current.xAnimated : 0,
-                    },
-                    {
-                      translateY: y ? coordinate.current.yAnimated : 0,
-                    },
-                  ],
-                },
-                useScrollView && {
-                  top: content.current.offsetY,
-                  left: content.current.offsetX,
-                  width: key === "notFreezed" ? content.current.width : 0,
-                  height: key === "notFreezed" ? content.current.height : 0,
-                },
-              ]}
-            >
-              {children}
-            </Animated.View>
-          );
-        })
-      )}
+      <View
+        ref={view}
+        style={[
+          {
+            overflow: "hidden",
+          },
+          style,
+        ]}
+        onLayout={onContainerLayout}
+        {...(useScrollView ? {} : panResponder.panHandlers)}
+      >
+        {!useScrollView && (
+          <CellGroup
+            translateX={coordinate.current.xAnimated}
+            translateY={coordinate.current.yAnimated}
+          >
+            {groups.notFreezed.children}
+          </CellGroup>
+        )}
+        {useScrollView && (
+          // no transition
+          <ScrollView
+            style={{
+              position: "absolute",
+              top: 40,
+              left: 50,
+              right: 0,
+              bottom: 0,
+              overflow: "scroll",
+            }}
+            scrollEventThrottle={1}
+            onScroll={onScroll}
+          >
+            {/* no transition */}
+            <View style={{ width: 10000, height: 10000 }}>
+              {/* with transition */}
+              <View
+                style={[
+                  {
+                    position: "absolute",
+                    top: -40,
+                    left: -50,
+                  },
+                ]}
+              >
+                {groups.notFreezed.children}
+              </View>
+            </View>
+          </ScrollView>
+        )}
+
+        <CellGroup translateY={coordinate.current.yAnimated}>
+          {groups.columnFreezed.children}
+        </CellGroup>
+        <CellGroup translateX={coordinate.current.xAnimated}>
+          {groups.rowFreezed.children}
+        </CellGroup>
+        <CellGroup>{groups.allFreezed.children}</CellGroup>
+      </View>
     </VirtualizedGridContext.Provider>
+  );
+}
+
+function CellGroup({
+  translateX = 0,
+  translateY = 0,
+  children,
+}: {
+  translateX?: any;
+  translateY?: any;
+  children: any;
+}) {
+  return (
+    <Animated.View
+      style={[
+        {
+          position: "absolute",
+          transform: [{ translateX }, { translateY }],
+        },
+      ]}
+    >
+      {children}
+    </Animated.View>
   );
 }
