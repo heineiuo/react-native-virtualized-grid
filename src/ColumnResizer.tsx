@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { startTransition, useMemo } from "react";
 import { Pressable, Animated, PanResponder } from "react-native";
 
 import { useGrid } from "./VirtualizedGridContext";
@@ -11,7 +11,7 @@ export function ColumnResizer({
   column: ColumnObject;
   row: RowObject;
 }) {
-  const { virtualColumns, onChangeColumn } = useGrid();
+  const { virtualColumns, onChangeColumn, columnMinWidth } = useGrid();
 
   const panResponder = useMemo(() => {
     let rightColumns = [];
@@ -46,12 +46,18 @@ export function ColumnResizer({
       },
 
       onPanResponderMove: (event, gestureState) => {
-        __DEV__ && console.log("[resizer] move");
-        for (const item of rightColumns) {
-          item.xAnimated.setValue(gestureState.dx);
-        }
-        column.widthAnimated.setValue(gestureState.dx);
-        onChangeColumn(column);
+        // ? 想用startTransition做性能优化，不确定是否必要
+        startTransition(() => {
+          __DEV__ && console.log("[resizer] move:");
+          // column.width <= columnMinWidth 判断当前column会不会盖住前一个column
+          // gestureState.dx < 0 防止column达到最小宽度时无法拖拽
+          if (column.width <= columnMinWidth && gestureState.dx < 0) return;
+          for (const item of rightColumns) {
+            item.xAnimated.setValue(gestureState.dx);
+          }
+          column.widthAnimated.setValue(gestureState.dx);
+          onChangeColumn(column);
+        });
       },
 
       onPanResponderRelease: () => {
