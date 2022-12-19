@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { startTransition, useMemo } from "react";
 import { Pressable, Animated, PanResponder } from "react-native";
 
 import { useGrid } from "./VirtualizedGridContext";
@@ -11,7 +11,7 @@ export function RowResizer({
   column: ColumnObject;
   row: RowObject;
 }) {
-  const { virtualRows, onChangeRow } = useGrid();
+  const { virtualRows, onChangeRow, rowMinHeight } = useGrid();
 
   const panResponder = useMemo(() => {
     let bottomRows = [];
@@ -46,12 +46,15 @@ export function RowResizer({
       },
 
       onPanResponderMove: (event, gestureState) => {
-        __DEV__ && console.log("[resizer] move");
-        for (const item of bottomRows) {
-          item.yAnimated.setValue(gestureState.dy);
-        }
-        row.heightAnimated.setValue(gestureState.dy);
-        onChangeRow(row);
+        startTransition(() => {
+          __DEV__ && console.log("[resizer] move");
+          if (row.height < rowMinHeight && gestureState.dy < 0) return;
+          for (const item of bottomRows) {
+            item.yAnimated.setValue(gestureState.dy);
+          }
+          row.heightAnimated.setValue(gestureState.dy);
+          onChangeRow(row);
+        });
       },
 
       onPanResponderRelease: () => {
