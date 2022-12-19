@@ -16,6 +16,8 @@ export type CellProps = {
 export type VirtualizedGridProps = {
   debug?: boolean;
   style?: StyleProp<ViewStyle>;
+  rowMinHeight?: number;
+  columnMinWidth?: number;
   freezedColumns?: {
     /**
      * how many columns should be freezed to left
