@@ -66,7 +66,7 @@ export function RowResizer({
         bottomRows = [];
       },
     });
-  }, [row, virtualRows, onChangeRow]);
+  }, [row, virtualRows, rowMinHeight, onChangeRow]);
 
   return (
     <Animated.View

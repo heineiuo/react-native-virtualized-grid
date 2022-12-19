@@ -69,7 +69,7 @@ export function ColumnResizer({
         rightColumns = [];
       },
     });
-  }, [column, virtualColumns, onChangeColumn]);
+  }, [column, virtualColumns, columnMinWidth, onChangeColumn]);
 
   return (
     <Animated.View
