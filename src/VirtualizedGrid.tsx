@@ -34,6 +34,8 @@ export function VirtualizedGrid({
   onChangeColumnOrder = () => undefined,
   onChangeRowOrder = () => undefined,
   onChangeVisibleArea = () => undefined,
+  rowMinHeight = 30,
+  columnMinWidth = 30,
   useScrollView = false,
 }: VirtualizedGridProps) {
   const view = useRef<View>(null);
@@ -587,6 +589,8 @@ export function VirtualizedGrid({
         updateCoordinate,
         onChangeColumnOrder,
         onChangeRowOrder,
+        rowMinHeight,
+        columnMinWidth,
       }}
     >
       <View
