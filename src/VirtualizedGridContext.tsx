@@ -6,6 +6,8 @@ import { CellObject, ColumnObject, RowObject } from "./VirtualizedGridUtils";
 export type VirtualizedGridState = {
   virtualColumns: MutableRefObject<ColumnObject[]>;
   virtualRows: MutableRefObject<RowObject[]>;
+  columnMinWidth: number;
+  rowMinHeight: number;
   coordinate: MutableRefObject<{
     x: number;
     y: number;
