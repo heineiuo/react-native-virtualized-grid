@@ -8,7 +8,7 @@
     "build:typescript": "tsc src/*.tsx --declaration --target es6 --emitDeclarationOnly --jsx 'react-native'  --skipLibCheck --allowSyntheticDefaultImports  --outDir lib/typescript",
     "prepublishOnly": "node scripts/prepublishOnly.js",
     "postpublish": "node scripts/postpublish.js",
-    "build:web": "expo build:web",
+    "build:web": "expo export:web",
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
