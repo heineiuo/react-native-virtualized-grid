@@ -44,7 +44,7 @@ export default function App() {
     }
   }, []);
   return (
-    <>
+    <View>
       <Header />
 
       <VirtualizedGrid
@@ -154,6 +154,6 @@ export default function App() {
           );
         }}
       />
-    </>
+    </View>
   );
 }
