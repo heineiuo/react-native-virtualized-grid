@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { startTransition, useMemo } from "react";
 import { Pressable, Animated, PanResponder } from "react-native";
 
 import { useGrid } from "./VirtualizedGridContext";
@@ -11,10 +11,12 @@ export function ColumnResizer({
   column: ColumnObject;
   row: RowObject;
 }) {
-  const { virtualColumns, onChangeColumn } = useGrid();
+  const { virtualColumns, onChangeColumn, columnMinWidth } = useGrid();
 
   const panResponder = useMemo(() => {
     let rightColumns = [];
+    // 记忆最后一次释放（松手）的宽度
+    let memoedColumnWidth = column.width;
 
     return PanResponder.create({
       onPanResponderTerminate: (event, gestureState) => {
@@ -46,16 +48,26 @@ export function ColumnResizer({
       },
 
       onPanResponderMove: (event, gestureState) => {
-        __DEV__ && console.log("[resizer] move");
-        for (const item of rightColumns) {
-          item.xAnimated.setValue(gestureState.dx);
-        }
-        column.widthAnimated.setValue(gestureState.dx);
-        onChangeColumn(column);
+        __DEV__ && console.log("[resizer] move", column.width, gestureState.dx);
+        startTransition(() => {
+          // memoedColumnWidth + gestureState.dx <= columnMinWidth 判断当前column最后一次拖动时的宽度和当前位移是否小于最小宽度
+          // gestureState.dx < 0 防止column达到最小宽度时无法拖拽
+          const movement =
+            memoedColumnWidth + gestureState.dx <= columnMinWidth &&
+            gestureState.dx < 0
+              ? columnMinWidth - memoedColumnWidth
+              : gestureState.dx;
+          for (const item of rightColumns) {
+            item.xAnimated.setValue(movement);
+          }
+          column.widthAnimated.setValue(movement);
+          onChangeColumn(column);
+        });
       },
 
       onPanResponderRelease: () => {
-        __DEV__ && console.log("[resizer] release");
+        __DEV__ && console.log("[resizer] release", column.width);
+        memoedColumnWidth = column.width;
         column.widthAnimated.flattenOffset();
         for (const item of rightColumns) {
           item.xAnimated.flattenOffset();
@@ -63,7 +75,7 @@ export function ColumnResizer({
         rightColumns = [];
       },
     });
-  }, [column, virtualColumns, onChangeColumn]);
+  }, [column, virtualColumns, columnMinWidth, onChangeColumn]);
 
   return (
     <Animated.View

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { startTransition, useMemo } from "react";
 import { Pressable, Animated, PanResponder } from "react-native";
 
 import { useGrid } from "./VirtualizedGridContext";
@@ -11,10 +11,11 @@ export function RowResizer({
   column: ColumnObject;
   row: RowObject;
 }) {
-  const { virtualRows, onChangeRow } = useGrid();
+  const { virtualRows, onChangeRow, rowMinHeight } = useGrid();
 
   const panResponder = useMemo(() => {
     let bottomRows = [];
+    let memoedRowHeight = row.height;
 
     return PanResponder.create({
       onPanResponderTerminate: (event, gestureState) => {
@@ -47,15 +48,23 @@ export function RowResizer({
 
       onPanResponderMove: (event, gestureState) => {
         __DEV__ && console.log("[resizer] move");
-        for (const item of bottomRows) {
-          item.yAnimated.setValue(gestureState.dy);
-        }
-        row.heightAnimated.setValue(gestureState.dy);
-        onChangeRow(row);
+        startTransition(() => {
+          const movement =
+            memoedRowHeight + gestureState.dy <= rowMinHeight &&
+            gestureState.dy <= 0
+              ? rowMinHeight - memoedRowHeight
+              : gestureState.dy;
+          for (const item of bottomRows) {
+            item.yAnimated.setValue(movement);
+          }
+          row.heightAnimated.setValue(movement);
+          onChangeRow(row);
+        });
       },
 
       onPanResponderRelease: () => {
         __DEV__ && console.log("[resizer] release");
+        memoedRowHeight = row.height;
         row.heightAnimated.flattenOffset();
         for (const item of bottomRows) {
           item.yAnimated.flattenOffset();
@@ -63,7 +72,7 @@ export function RowResizer({
         bottomRows = [];
       },
     });
-  }, [row, virtualRows, onChangeRow]);
+  }, [row, virtualRows, rowMinHeight, onChangeRow]);
 
   return (
     <Animated.View
