@@ -12,6 +12,8 @@ export type VirtualizedGridState = {
     xAnimated: Animated.Value;
     yAnimated: Animated.Value;
   }>;
+  rowMinHeight: number;
+  columnMinWidth: number;
   containerSize: MutableRefObject<{ width: number; height: number }>;
   updateCoordinate: (event: { deltaX: number; deltaY: number }) => void;
   onChangeRow: (row: RowObject) => void;

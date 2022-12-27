@@ -28,6 +28,8 @@ export type VirtualizedGridProps = {
      */
     start?: number;
   };
+  rowMinHeight?: number;
+  columnMinWidth?: number;
   columnCount: number;
   rowCount: number;
   showRowLine?: boolean;
