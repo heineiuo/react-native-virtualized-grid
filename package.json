@@ -1,11 +1,9 @@
 {
   "name": "react-native-virtualized-grid",
   "version": "0.2.2",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "build:commonjs": "babel src --out-dir lib/commonjs --extensions '.ts,.tsx' --source-maps",
-    "build:module": "tsc src/*.tsx --module es2015 --target es6 --jsx 'react-native' --sourceMap --skipLibCheck --allowSyntheticDefaultImports --outDir lib/module",
-    "build:typescript": "tsc src/*.tsx --declaration --target es6 --emitDeclarationOnly --jsx 'react-native'  --skipLibCheck --allowSyntheticDefaultImports  --outDir lib/typescript",
+    "build": "tsc src/*.tsx  --declaration --module es2015 --target es6 --jsx 'react-native' --sourceMap --skipLibCheck --allowSyntheticDefaultImports --outDir lib",
     "prepublishOnly": "node scripts/prepublishOnly.js",
     "postpublish": "node scripts/postpublish.js",
     "build:web": "expo export:web",
@@ -15,10 +13,7 @@
     "web": "expo start --web",
     "eject": "expo eject"
   },
-  "types": "lib/typescript/index.d.ts",
-  "module": "lib/module/index.js",
-  "react-native": "src/index.tsx",
-  "source": "src/index.tsx",
+  "types": "lib/index.d.ts",
   "files": [
     "src",
     "lib"
@@ -41,16 +36,16 @@
   "devDependencies": {
     "@babel/cli": "7.19.3",
     "@babel/core": "7.20.5",
-    "@expo/webpack-config": "0.17.3",
+    "@expo/webpack-config": "^19.0.1",
     "@types/react": "18.0.1",
     "@types/react-native": "0.70.8",
     "eslint-config-react-app": "7.0.1",
     "eslint-config-universe": "11.1.0",
-    "expo": "47.0.8",
+    "expo": "^50.0.11",
     "expo-status-bar": "1.4.2",
     "react": "18.1.0",
     "react-dom": "18.1.0",
-    "react-native": "0.70.6",
+    "react-native": "^0.73.6",
     "react-native-web": "0.18.10",
     "typescript": "4.9.4"
   },
